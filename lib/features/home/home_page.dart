@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
@@ -14,18 +15,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 2; // Trang chủ
 
+  // ====== BANNER AUTO SLIDE ======
+  late final PageController _bannerCtrl;
+  int _bannerIndex = 0;
+  Timer? _bannerTimer;
+
+  final List<String> _banners = const [
+    'assets/images/banner1.png',
+    'assets/images/banner2.png',
+    'assets/images/banner3.png',
+    'assets/images/banner4.png',
+  ];
+
   final List<Map<String, String>> _homePets = const [
     {
-      'name': 'Husky',
+      'name': 'Border Collie',
       'subtitle': '2 tháng • 7.000.000 đ',
+      'image': 'assets/images/11.jpg',
     },
     {
-      'name': 'Corgi',
+      'name': 'Phóc Sóc',
       'subtitle': '3 tháng • 8.000.000 đ',
+      'image': 'assets/images/12.jpg',
     },
     {
       'name': 'Mèo Anh',
       'subtitle': '2 tháng • 3.500.000 đ',
+      'image': 'assets/images/13.jpg',
     },
   ];
 
@@ -33,14 +49,17 @@ class _HomePageState extends State<HomePage> {
     {
       'name': 'Hạt Royal Canin',
       'subtitle': 'Bao 2kg • 420.000 đ',
+      'image': 'assets/images/thucan.jpg',
     },
     {
       'name': 'Dây dắt da mềm',
       'subtitle': 'Mới • 180.000 đ',
+      'image': 'assets/images/daydat.jpg',
     },
     {
       'name': 'Đồ chơi gặm',
       'subtitle': 'Set 3 món • 95.000 đ',
+      'image': 'assets/images/dochoi3.jpg',
     },
   ];
 
@@ -48,41 +67,49 @@ class _HomePageState extends State<HomePage> {
     {
       'name': 'Spa & tắm',
       'subtitle': 'Từ 180.000 đ',
+      'image': 'assets/images/tialong.jpg',
     },
     {
       'name': 'Khách sạn thú cưng',
       'subtitle': '250.000 đ/đêm',
+      'image': 'assets/images/nhathucung.jpg',
     },
     {
       'name': 'Tỉa lông',
       'subtitle': 'Từ 150.000 đ',
+      'image': 'assets/images/tialong.jpg',
     },
   ];
 
   final List<Map<String, String>> _posts = const [
     {
       'title': 'Top 5 sự thật về chó',
-      'content': 'Chó có khứu giác mạnh gấp 10.000 lần con người và có thể nhớ tới 250 mùi khác nhau. Ngoài ra, chó có khả năng nghe âm thanh ở tần số cao hơn con người rất nhiều, giúp chúng phát hiện nguy hiểm từ xa. Các nghiên cứu cho thấy chó có thể hiểu được hơn 150 từ ngữ và cử chỉ của con người. Chúng cũng có khả năng cảm nhận cảm xúc của chủ nhân qua giọng nói và ngôn ngữ cơ thể. Đặc biệt, chó có thể giúp giảm stress và cải thiện sức khỏe tinh thần của con người qua sự đồng hành hàng ngày.',
+      'content':
+          'Chó có khứu giác mạnh gấp 10.000 lần con người và có thể nhớ tới 250 mùi khác nhau. Ngoài ra, chó có khả năng nghe âm thanh ở tần số cao hơn con người rất nhiều, giúp chúng phát hiện nguy hiểm từ xa. Các nghiên cứu cho thấy chó có thể hiểu được hơn 150 từ ngữ và cử chỉ của con người. Chúng cũng có khả năng cảm nhận cảm xúc của chủ nhân qua giọng nói và ngôn ngữ cơ thể. Đặc biệt, chó có thể giúp giảm stress và cải thiện sức khỏe tinh thần của con người qua sự đồng hành hàng ngày.',
       'source': 'cre: Nguyễn Duy Phúc',
     },
     {
       'title': 'Các thức ăn cực độc cho mèo',
-      'content': 'Sô cô la, hành tỏi, nho và sữa bò có thể gây ngộ độc hoặc rối loạn tiêu hóa nghiêm trọng cho mèo. Sô cô la chứa theobromine - chất độc với mèo, có thể gây co giật và suy tim. Hành tỏi phá hủy hồng cầu, dẫn đến thiếu máu. Nho và nho khô có thể gây suy thận cấp tính. Sữa bò khiến nhiều mèo trưởng thành bị tiêu chảy do thiếu enzyme lactase. Ngoài ra, cần tránh cho mèo ăn xương gà (dễ vỡ và đâm thủng ruột), cà phê, rượu, bột nở, và các loại hạt macadamia. Luôn kiểm tra thành phần thức ăn trước khi cho mèo ăn.',
+      'content':
+          'Sô cô la, hành tỏi, nho và sữa bò có thể gây ngộ độc hoặc rối loạn tiêu hóa nghiêm trọng cho mèo. Sô cô la chứa theobromine - chất độc với mèo, có thể gây co giật và suy tim. Hành tỏi phá hủy hồng cầu, dẫn đến thiếu máu. Nho và nho khô có thể gây suy thận cấp tính. Sữa bò khiến nhiều mèo trưởng thành bị tiêu chảy do thiếu enzyme lactase. Ngoài ra, cần tránh cho mèo ăn xương gà (dễ vỡ và đâm thủng ruột), cà phê, rượu, bột nở, và các loại hạt macadamia. Luôn kiểm tra thành phần thức ăn trước khi cho mèo ăn.',
       'source': 'cre: Minh Anh',
     },
     {
       'title': 'Lưu ý khi tắm cho chó',
-      'content': 'Chỉ tắm bằng nước ấm, tránh nước vào tai; dùng sữa tắm dành riêng cho thú cưng để không kích ứng da. Trước khi tắm, hãy chải lông kỹ để loại bỏ lông rụng và rối. Kiểm tra nhiệt độ nước bằng cổ tay để đảm bảo không quá nóng hay lạnh. Thoa sữa tắm nhẹ nhàng theo chiều mọc lông, tránh vùng mắt và tai. Xả sạch hoàn toàn để không còn bọt xà phòng gây ngứa da. Sau tắm, dùng khăn lau khô và sấy ở nhiệt độ vừa phải, giữ khoảng cách an toàn. Tần suất tắm nên 2-4 tuần/lần tùy giống chó và mức độ bẩn.',
+      'content':
+          'Chỉ tắm bằng nước ấm, tránh nước vào tai; dùng sữa tắm dành riêng cho thú cưng để không kích ứng da. Trước khi tắm, hãy chải lông kỹ để loại bỏ lông rụng và rối. Kiểm tra nhiệt độ nước bằng cổ tay để đảm bảo không quá nóng hay lạnh. Thoa sữa tắm nhẹ nhàng theo chiều mọc lông, tránh vùng mắt và tai. Xả sạch hoàn toàn để không còn bọt xà phòng gây ngứa da. Sau tắm, dùng khăn lau khô và sấy ở nhiệt độ vừa phải, giữ khoảng cách an toàn. Tần suất tắm nên 2-4 tuần/lần tùy giống chó và mức độ bẩn.',
       'source': 'cre: Thảo My',
     },
     {
       'title': 'Cách chọn thức ăn hạt',
-      'content': 'Ưu tiên hạt có đạm động vật cao, không chất tạo màu, và phù hợp độ tuổi/giống của thú cưng. Đọc kỹ thành phần trên bao bì: nguồn đạm tốt như thịt gà, thịt bò, cá nên nằm trong top 3 thành phần đầu tiên. Tránh hạt có quá nhiều ngũ cốc rẻ tiền như ngô, lúa mì làm chất độn. Kiểm tra hạn sử dụng và bảo quản đúng cách trong hộp kín, nơi khô ráo. Với chó con, chọn hạt puppy giàu năng lượng; chó trưởng thành cần công thức cân bằng; chó già nên dùng hạt ít calo, bổ sung khớp. Quan sát phản ứng của thú cưng: nếu bị tiêu chảy, rụng lông hay ngứa da, có thể do dị ứng - cần đổi loại hạt khác.',
+      'content':
+          'Ưu tiên hạt có đạm động vật cao, không chất tạo màu, và phù hợp độ tuổi/giống của thú cưng. Đọc kỹ thành phần trên bao bì: nguồn đạm tốt như thịt gà, thịt bò, cá nên nằm trong top 3 thành phần đầu tiên. Tránh hạt có quá nhiều ngũ cốc rẻ tiền như ngô, lúa mì làm chất độn. Kiểm tra hạn sử dụng và bảo quản đúng cách trong hộp kín, nơi khô ráo. Với chó con, chọn hạt puppy giàu năng lượng; chó trưởng thành cần công thức cân bằng; chó già nên dùng hạt ít calo, bổ sung khớp. Quan sát phản ứng của thú cưng: nếu bị tiêu chảy, rụng lông hay ngứa da, có thể do dị ứng - cần đổi loại hạt khác.',
       'source': 'cre: Gia Bảo',
     },
     {
       'title': 'Dấu hiệu mèo bị stress',
-      'content': 'Mèo trốn kỹ, bỏ ăn, liếm lông quá mức; hãy tạo góc trú an toàn và chơi nhẹ nhàng mỗi ngày. Stress ở mèo có thể biểu hiện qua hành vi hung hăng đột ngột, tiểu bậy ngoài khay vệ sinh, hoặc kêu rên liên tục. Nguyên nhân thường do thay đổi môi trường (chuyển nhà, khách lạ), ồn ào kéo dài, hoặc xung đột với thú cưng khác. Để giảm stress, cung cấp nhiều nơi trú ẩn yên tĩnh ở độ cao khác nhau, sử dụng pheromone xoa dịu, duy trì lịch trình cho ăn đều đặn. Chơi đùa đều đặn với đồ chơi kích thích bản năng săn mồi cũng giúp giải tỏa căng thẳng hiệu quả.',
+      'content':
+          'Mèo trốn kỹ, bỏ ăn, liếm lông quá mức; hãy tạo góc trú an toàn và chơi nhẹ nhàng mỗi ngày. Stress ở mèo có thể biểu hiện qua hành vi hung hăng đột ngột, tiểu bậy ngoài khay vệ sinh, hoặc kêu rên liên tục. Nguyên nhân thường do thay đổi môi trường (chuyển nhà, khách lạ), ồn ào kéo dài, hoặc xung đột với thú cưng khác. Để giảm stress, cung cấp nhiều nơi trú ẩn yên tĩnh ở độ cao khác nhau, sử dụng pheromone xoa dịu, duy trì lịch trình cho ăn đều đặn. Chơi đùa đều đặn với đồ chơi kích thích bản năng săn mồi cũng giúp giải tỏa căng thẳng hiệu quả.',
       'source': 'cre: Khánh Vy',
     },
   ];
@@ -112,6 +139,29 @@ class _HomePageState extends State<HomePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _bannerCtrl = PageController();
+
+    _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_bannerCtrl.hasClients) return;
+      final next = (_bannerIndex + 1) % _banners.length;
+      _bannerCtrl.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    _bannerCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -119,16 +169,13 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {
-              Navigator.pushNamed(context, '/cart');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
           ),
         ],
       ),
       drawer: _buildDrawer(context),
       body: _buildBody(),
 
-      // 🔽 BOTTOM NAV ĐÃ CHỈNH
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(
         itemCount: _tabs.length,
         activeIndex: _selectedIndex,
@@ -141,12 +188,10 @@ class _HomePageState extends State<HomePage> {
         leftCornerRadius: 32,
         rightCornerRadius: 32,
         onTap: (index) => setState(() => _selectedIndex = index),
-
         tabBuilder: (index, isActive) {
           return Stack(
             alignment: Alignment.center,
             children: [
-              // 👇 HIỆU ỨNG "LÚN XUỐNG" Ở NỀN
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOut,
@@ -166,8 +211,6 @@ class _HomePageState extends State<HomePage> {
                       : [],
                 ),
               ),
-
-              // 👇 ICON HÌNH TRÒN
               AnimatedScale(
                 duration: const Duration(milliseconds: 250),
                 scale: isActive ? 1.15 : 1.0,
@@ -196,28 +239,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody() {
-    if (_selectedIndex == 0) {
-      return _buildPostsTab();
-    }
-    // Trang "Thú cưng" (index 1)
-    if (_selectedIndex == 1) {
-      return const _PetsTab();
-    }
-
-    // Trang chủ (index 2)
-    if (_selectedIndex == 2) {
-      return _buildHomeContent();
-    }
-
-    // Trang vật phẩm (index 3)
-    if (_selectedIndex == 3) {
-      return const _ItemsTab();
-    }
-
-    // Trang dịch vụ (index 4)
-    if (_selectedIndex == 4) {
-      return const _ServicesTab();
-    }
+    if (_selectedIndex == 0) return _buildPostsTab();
+    if (_selectedIndex == 1) return const _PetsTab();
+    if (_selectedIndex == 2) return _buildHomeContent();
+    if (_selectedIndex == 3) return const _ItemsTab();
+    if (_selectedIndex == 4) return const _ServicesTab();
 
     final tab = _tabs[_selectedIndex];
     return Padding(
@@ -253,10 +279,7 @@ class _HomePageState extends State<HomePage> {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       itemCount: _posts.length,
-      itemBuilder: (context, index) {
-        final post = _posts[index];
-        return _buildPostCard(post);
-      },
+      itemBuilder: (context, index) => _buildPostCard(_posts[index]),
     );
   }
 
@@ -276,7 +299,10 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     post['title'] ?? '',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -296,9 +322,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/post-detail', arguments: post);
-              },
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/post-detail', arguments: post),
               icon: const Icon(Icons.arrow_forward_ios, size: 18),
               color: Colors.grey[600],
             ),
@@ -316,16 +341,12 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ====== HERO BANNER 4 ẢNH AUTO SLIDE ======
           Container(
             height: screenHeight * 0.32,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1AD0BE), Color(0xFF0D8F87)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),
@@ -339,37 +360,40 @@ class _HomePageState extends State<HomePage> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Icon(
-                    Icons.pets,
-                    size: 120,
-                    color: Colors.white.withOpacity(0.2),
+                  PageView.builder(
+                    controller: _bannerCtrl,
+                    itemCount: _banners.length,
+                    onPageChanged: (i) => setState(() => _bannerIndex = i),
+                    itemBuilder: (_, i) =>
+                        Image.asset(_banners[i], fit: BoxFit.cover),
                   ),
+
+                  // Dots
                   Positioned(
-                    left: 20,
-                    bottom: 20,
-                    right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Chào mừng đến Pet Shop',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
+                    bottom: 12,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(_banners.length, (i) {
+                        final active = i == _bannerIndex;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: active ? 16 : 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(99),
+                            color: active
+                                ? Colors.white
+                                : Colors.white70.withOpacity(0.6),
                           ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Khám phá thú cưng, đồ dùng và dịch vụ chỉ với vài chạm.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
+                        );
+                      }),
                     ),
                   ),
+
+                  // Text như cũ
                 ],
               ),
             ),
@@ -382,7 +406,12 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _buildSection('Thú cưng nổi bật', _homePets, Icons.pets, 1),
                 const SizedBox(height: 18),
-                _buildSection('Vật phẩm', _homeItems, Icons.inventory_2_outlined, 3),
+                _buildSection(
+                  'Vật phẩm',
+                  _homeItems,
+                  Icons.inventory_2_outlined,
+                  3,
+                ),
                 const SizedBox(height: 18),
                 _buildSection('Dịch vụ', _homeServices, Icons.spa_outlined, 4),
               ],
@@ -424,7 +453,7 @@ class _HomePageState extends State<HomePage> {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildHomeCard(item, icon);
+              return _buildHomeCard(item, icon); // giữ nguyên
             },
           ),
         ),
@@ -433,6 +462,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHomeCard(Map<String, String> item, IconData icon) {
+    final img = item['image']; // đường dẫn ảnh (assets)
+
     return Container(
       width: 160,
       padding: const EdgeInsets.all(12),
@@ -450,24 +481,38 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: const Color(0xFFEFF9F8),
-            ),
-            child: Center(
-              child: Icon(icon, color: const Color(0xFF0D8F87), size: 40),
-            ),
+          // ===== ẢNH / ICON =====
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: (img != null && img.isNotEmpty)
+                ? Image.asset(
+                    img,
+                    height: 80,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    height: 80,
+                    width: double.infinity,
+                    color: const Color(0xFFEFF9F8),
+                    alignment: Alignment.center,
+                    child: Icon(icon, color: const Color(0xFF0D8F87), size: 40),
+                  ),
           ),
+
           const SizedBox(height: 10),
+
           Text(
             item['name'] ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
             item['subtitle'] ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13, color: Colors.grey[700]),
           ),
         ],
@@ -555,6 +600,8 @@ class _TabItem {
 }
 
 // ===== TRANG THÚ CƯNG =====
+
+// ===== TRANG THÚ CƯNG =====
 class _PetsTab extends StatefulWidget {
   const _PetsTab();
 
@@ -566,31 +613,32 @@ class _PetsTabState extends State<_PetsTab> {
   String _selectedPetType = 'dog'; // 'dog' or 'cat'
   final TextEditingController _searchCtrl = TextEditingController();
 
-  // Dữ liệu mẫu
+  // Dữ liệu mẫu (nhớ đổi đường dẫn ảnh cho đúng file thật của chủ nhân)
   final List<Map<String, String>> _dogPets = [
     {
-      'name': 'Golden Retriever',
-      'age': '3 tháng',
-      'price': '5.000.000 đ',
-      'image': 'dog1',
-    },
-    {
-      'name': 'Husky',
+      'name': 'Border Collie',
       'age': '2 tháng',
       'price': '7.000.000 đ',
-      'image': 'dog2',
+      'image': 'assets/images/11.jpg'
+
     },
     {
-      'name': 'Poodle',
-      'age': '4 tháng',
-      'price': '4.500.000 đ',
-      'image': 'dog3',
-    },
-    {
-      'name': 'Corgi',
+      'name': 'Border Collie',
       'age': '3 tháng',
+      'price': '7.500.000 đ',
+      'image': 'assets/images/21.jpg',
+    },
+    {
+      'name': 'Phốc Sóc',
+      'age': '2 tháng',
       'price': '8.000.000 đ',
-      'image': 'dog4',
+      'image': 'assets/images/12.jpg',
+    },
+    {
+      'name': 'Phốc Sóc',
+      'age': '3 tháng',
+      'price': '8.500.000 đ',
+      'image': 'assets/images/22.jpeg',
     },
   ];
 
@@ -599,25 +647,25 @@ class _PetsTabState extends State<_PetsTab> {
       'name': 'Mèo Anh lông ngắn',
       'age': '2 tháng',
       'price': '3.500.000 đ',
-      'image': 'cat1',
+      'image': 'assets/images/meosco1.jpg',
     },
     {
-      'name': 'Mèo Ba Tư',
+      'name': 'Mèo Anh lông ngắn',
       'age': '3 tháng',
-      'price': '6.000.000 đ',
-      'image': 'cat2',
+      'price': '3.800.000 đ',
+      'image': 'assets/images/meosco2.jpg',
     },
     {
-      'name': 'Mèo Xiêm',
+      'name': 'Mèo Anh lông ngắn',
       'age': '4 tháng',
-      'price': '2.800.000 đ',
-      'image': 'cat3',
+      'price': '4.200.000 đ',
+      'image': 'assets/images/meotaicup1.jpg',
     },
     {
-      'name': 'Mèo Scottish Fold',
-      'age': '3 tháng',
-      'price': '7.500.000 đ',
-      'image': 'cat4',
+      'name': 'Mèo Anh lông ngắn',
+      'age': '5 tháng',
+      'price': '4.800.000 đ',
+       'image': 'assets/images/meosco2.jpg',
     },
   ];
 
@@ -633,15 +681,12 @@ class _PetsTabState extends State<_PetsTab> {
 
     return Column(
       children: [
-        // 1️⃣ Banner Image (1/3 chiều cao body, fixed, bo góc)
+        // 1️⃣ Banner Image
         Container(
           height: MediaQuery.of(context).size.height * 0.25,
           margin: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1AD0BE), Color(0xFF0D8F87)],
-            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
@@ -655,12 +700,26 @@ class _PetsTabState extends State<_PetsTab> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Placeholder image - thay bằng Image.asset nếu có ảnh thật
-                Icon(
-                  Icons.pets,
-                  size: 80,
-                  color: Colors.white.withOpacity(0.3),
+                // ✅ Ảnh banner thay cho icon
+                Image.asset(
+                  'assets/images/banner1.png', // đổi theo ảnh banner của chủ nhân
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) {
+                    return Container(
+                      color: Colors.grey[300],
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 70,
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  },
                 ),
+
+                // overlay nhẹ để chữ dễ đọc
+                Container(color: Colors.black.withOpacity(0.25)),
+
                 Positioned(
                   bottom: 16,
                   left: 16,
@@ -675,7 +734,7 @@ class _PetsTabState extends State<_PetsTab> {
                           fontWeight: FontWeight.w900,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withOpacity(0.35),
                               blurRadius: 8,
                             ),
                           ],
@@ -723,7 +782,7 @@ class _PetsTabState extends State<_PetsTab> {
           ),
         ),
 
-        // 3️⃣ Card chứa filter (Chó/Mèo) + Danh sách
+        // 3️⃣ Card chứa filter + danh sách
         Expanded(
           child: Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -741,7 +800,6 @@ class _PetsTabState extends State<_PetsTab> {
             ),
             child: Column(
               children: [
-                // 🐶🐱 Filter buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -754,7 +812,6 @@ class _PetsTabState extends State<_PetsTab> {
                 const Divider(height: 1),
                 const SizedBox(height: 8),
 
-                // 📜 Danh sách thú cưng
                 Expanded(
                   child: ListView.builder(
                     itemCount: pets.length,
@@ -815,6 +872,8 @@ class _PetsTabState extends State<_PetsTab> {
   }
 
   Widget _buildPetCard(Map<String, String> pet) {
+    final img = pet['image'];
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -823,23 +882,30 @@ class _PetsTabState extends State<_PetsTab> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Hình bên trái
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                _selectedPetType == 'dog' ? Icons.pets : Icons.flutter_dash,
-                size: 40,
-                color: Colors.grey[600],
+            // ✅ Ảnh bên trái thay icon
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 80,
+                height: 80,
+                color: Colors.grey[200],
+                child: Image.asset(
+                  pet['image']!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) {
+                    return const Icon(
+                      Icons.broken_image_outlined,
+                      size: 40,
+                      color: Colors.grey,
+                    );
+                  },
+                ),
               ),
             ),
+
             const SizedBox(width: 12),
 
-            // Thông tin bên phải
+            // Thông tin
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,7 +919,7 @@ class _PetsTabState extends State<_PetsTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tuổi: ${pet['age']}',
+                    'Tuổi: ${pet['age'] ?? ''}',
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                   ),
                   const SizedBox(height: 4),
@@ -869,7 +935,6 @@ class _PetsTabState extends State<_PetsTab> {
               ),
             ),
 
-            // Nút chi tiết
             IconButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/pet-detail', arguments: pet);
@@ -883,6 +948,8 @@ class _PetsTabState extends State<_PetsTab> {
     );
   }
 }
+
+
 
 // ===== TRANG VẬT PHẨM =====
 class _ItemsTab extends StatefulWidget {
@@ -904,54 +971,55 @@ class _ItemsTabState extends State<_ItemsTab> {
     'Bảng tên',
   ];
 
+  // ✅ Thêm field 'image' cho từng item (đường dẫn asset thật)
   final Map<String, List<Map<String, String>>> _itemsByCategory = const {
     'Đồ chơi': [
-      {'name': 'Bóng cao su', 'price': '45.000 đ'},
-      {'name': 'Xương gặm TPR', 'price': '65.000 đ'},
-      {'name': 'Chuột nhồi bông', 'price': '35.000 đ'},
-      {'name': 'Dây kéo co', 'price': '75.000 đ'},
-      {'name': 'Bóng phát âm', 'price': '55.000 đ'},
-      {'name': 'Gậy laser', 'price': '80.000 đ'},
+      {'name': 'Bóng cao su', 'price': '45.000 đ', 'image': 'assets/images/dcbanh.jpg'},
+      {'name': 'Gấu Bông', 'price': '65.000 đ', 'image': 'assets/images/dcgau.jpg'},
+      {'name': 'Chuột nhồi bông', 'price': '35.000 đ', 'image': 'assets/images/dcchuot.jpg'},
+      {'name': 'Chuông', 'price': '75.000 đ', 'image': 'assets/images/dochoichuong.jpg'},
+      {'name': 'Bóng phát âm', 'price': '55.000 đ', 'image': 'assets/images/dochoi3.jpg'},
+      {'name': 'Bóng cao su', 'price': '45.000 đ', 'image': 'assets/images/dcbanh.jpg'},
     ],
     'Đồ ăn': [
-      {'name': 'Royal Canin 2kg', 'price': '420.000 đ'},
-      {'name': 'Pate cho mèo', 'price': '35.000 đ'},
-      {'name': 'Xương gặm sạch răng', 'price': '25.000 đ'},
-      {'name': 'Snack dinh dưỡng', 'price': '48.000 đ'},
-      {'name': 'Hạt Ganador 5kg', 'price': '550.000 đ'},
-      {'name': 'Sữa dê tươi', 'price': '65.000 đ'},
+      {'name': 'Royal Canin 2kg', 'price': '420.000 đ', 'image': 'assets/images/hat.jpg'},
+      {'name': 'Pate cho mèo', 'price': '35.000 đ', 'image': 'assets/images/patemeo.jpg'},
+      {'name': 'Xương gặm sạch răng', 'price': '25.000 đ', 'image': 'assets/images/xuong.jpg'},
+      {'name': 'Snack dinh dưỡng', 'price': '48.000 đ', 'image': 'assets/images/snack.jpg'},
+      {'name': 'Hạt Ganador 5kg', 'price': '550.000 đ', 'image': 'assets/images/hat.jpg'}
+   
     ],
     'Quần áo': [
-      {'name': 'Áo hoodie', 'price': '120.000 đ'},
-      {'name': 'Áo mưa', 'price': '85.000 đ'},
-      {'name': 'Đầm công chúa', 'price': '150.000 đ'},
-      {'name': 'Áo len dệt kim', 'price': '95.000 đ'},
-      {'name': 'Bộ vest lịch sự', 'price': '180.000 đ'},
-      {'name': 'Áo thun cotton', 'price': '60.000 đ'},
+      {'name': 'Áo hoodie', 'price': '120.000 đ', 'image': 'assets/images/ao1.jpg'},
+      {'name': 'Áo mưa', 'price': '85.000 đ', 'image': 'assets/images/ao2.jpg'},
+      {'name': 'Đầm công chúa', 'price': '150.000 đ', 'image': 'assets/images/ao3.jpg'},
+      {'name': 'Áo len dệt kim', 'price': '95.000 đ', 'image': 'assets/images/ao4.jpg'},
+      {'name': 'Bộ vest lịch sự', 'price': '180.000 đ', 'image': 'assets/images/ao5.jpg'},
+      {'name': 'Áo thun cotton', 'price': '60.000 đ', 'image': 'assets/images/ao1.jpg'},
     ],
     'Lồng': [
-      {'name': 'Lồng sắt 60cm', 'price': '450.000 đ'},
-      {'name': 'Lồng gấp gọn', 'price': '380.000 đ'},
-      {'name': 'Nhà gỗ ngoài trời', 'price': '850.000 đ'},
-      {'name': 'Lồng mèo 3 tầng', 'price': '1.200.000 đ'},
-      {'name': 'Túi vận chuyển', 'price': '220.000 đ'},
-      {'name': 'Balo phi hành gia', 'price': '320.000 đ'},
+      {'name': 'Lồng sắt 60cm', 'price': '450.000 đ', 'image': 'assets/images/long1png'},
+      {'name': 'Lồng gấp gọn', 'price': '380.000 đ', 'image': 'assets/images/llong1png'},
+      {'name': 'Nhà gỗ ngoài trời', 'price': '850.000 đ', 'image': 'assets/images/nhago.jpg'},
+      {'name': 'Lồng mèo 3 tầng', 'price': '1.200.000 đ', 'image': 'assets/images/longmeo4.jpg'},
+      {'name': 'Túi vận chuyển', 'price': '220.000 đ', 'image': 'assets/images/balomeo2.jpg'},
+      {'name': 'Balo phi hành gia', 'price': '320.000 đ', 'image': 'assets/images/balomeo.jpg'},
     ],
     'Dây dắt': [
-      {'name': 'Dây da mềm 120cm', 'price': '180.000 đ'},
-      {'name': 'Dây tự cuộn 5m', 'price': '250.000 đ'},
-      {'name': 'Yếm đai chữ H', 'price': '95.000 đ'},
-      {'name': 'Dây nylon phản quang', 'price': '75.000 đ'},
-      {'name': 'Bộ dây + yếm cao cấp', 'price': '350.000 đ'},
-      {'name': 'Dây xích kim loại', 'price': '120.000 đ'},
+      {'name': 'Dây da mềm 120cm', 'price': '180.000 đ', 'image': 'assets/images/day1.jpg'},
+      {'name': 'Dây tự cuộn 5m', 'price': '250.000 đ', 'image': 'assets/images/day2.jpg'},
+      {'name': 'Yếm đai chữ H', 'price': '95.000 đ', 'image': 'assets/images/day3.jpg'},
+      {'name': 'Dây nylon phản quang', 'price': '75.000 đ', 'image': 'assets/images/day4.jpg'},
+      {'name': 'Bộ dây + yếm cao cấp', 'price': '350.000 đ', 'image': 'assets/images/day5.jpg'},
+       {'name': 'Dây da mềm 120cm', 'price': '180.000 đ', 'image': 'assets/images/day1.jpg'},
     ],
     'Bảng tên': [
-      {'name': 'Tag nhôm khắc laser', 'price': '50.000 đ'},
-      {'name': 'Tag hình xương inox', 'price': '65.000 đ'},
-      {'name': 'Vòng cổ có tên', 'price': '120.000 đ'},
-      {'name': 'QR code thông minh', 'price': '180.000 đ'},
-      {'name': 'Tag hình tim mica', 'price': '45.000 đ'},
-      {'name': 'Chip định vị GPS', 'price': '550.000 đ'},
+      {'name': 'Tag nhôm khắc laser', 'price': '50.000 đ', 'image': 'assets/images/ten1.jpg'},
+      {'name': 'Tag hình xương inox', 'price': '65.000 đ', 'image': 'assets/images/ten2.png'},
+      {'name': 'Vòng cổ có tên', 'price': '120.000 đ', 'image': 'assets/images/ten3.jpg'},
+      {'name': 'QR code thông minh', 'price': '180.000 đ', 'image': 'assets/images/ten1.jpg'},
+      {'name': 'Tag hình tim mica', 'price': '45.000 đ', 'image': 'assets/images/ten1.jpg'},
+      {'name': 'Chip định vị GPS', 'price': '550.000 đ', 'image': 'assets/images/ten2.png'},
     ],
   };
 
@@ -961,7 +1029,6 @@ class _ItemsTabState extends State<_ItemsTab> {
 
     return Column(
       children: [
-        // Danh sách category ngang
         SizedBox(
           height: 50,
           child: ListView.separated(
@@ -975,10 +1042,8 @@ class _ItemsTabState extends State<_ItemsTab> {
             },
           ),
         ),
-
         const Divider(height: 1),
 
-        // GridView 2 cột
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
@@ -1031,6 +1096,8 @@ class _ItemsTabState extends State<_ItemsTab> {
   }
 
   Widget _buildItemCard(Map<String, String> item) {
+    final img = item['image'];
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
@@ -1038,15 +1105,31 @@ class _ItemsTabState extends State<_ItemsTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              child: Container(
                 color: const Color(0xFFEFF9F8),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-              ),
-              child: const Icon(
-                Icons.shopping_bag_outlined,
-                size: 60,
-                color: Color(0xFF0D8F87),
+                child: (img != null && img.isNotEmpty)
+                    ? Image.asset(
+                        img,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) {
+                          return const Center(
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              size: 48,
+                              color: Color(0xFF0D8F87),
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 60,
+                          color: Color(0xFF0D8F87),
+                        ),
+                      ),
               ),
             ),
           ),
@@ -1079,6 +1162,7 @@ class _ItemsTabState extends State<_ItemsTab> {
   }
 }
 
+
 // ===== TRANG DỊCH VỤ =====
 class _ServicesTab extends StatefulWidget {
   const _ServicesTab();
@@ -1108,7 +1192,15 @@ class _ServicesTabState extends State<_ServicesTab> {
     },
     {
       'name': 'FULL',
-      'items': ['Tắm', 'Sấy', 'Chải lông', 'Cắt móng', 'Nhuộm', 'Dưỡng lông', 'Tỉa lông'],
+      'items': [
+        'Tắm',
+        'Sấy',
+        'Chải lông',
+        'Cắt móng',
+        'Nhuộm',
+        'Dưỡng lông',
+        'Tỉa lông',
+      ],
     },
   ];
 
@@ -1136,9 +1228,17 @@ class _ServicesTabState extends State<_ServicesTab> {
                 // Chó / Mèo selector
                 Row(
                   children: [
-                    Expanded(child: _buildSpeciesCard('dog', Icons.pets, 'Chó')),
+                    Expanded(
+                      child: _buildSpeciesCard('dog', Icons.pets, 'Chó'),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildSpeciesCard('cat', Icons.flutter_dash, 'Mèo')),
+                    Expanded(
+                      child: _buildSpeciesCard(
+                        'cat',
+                        Icons.flutter_dash,
+                        'Mèo',
+                      ),
+                    ),
                   ],
                 ),
 
@@ -1147,7 +1247,10 @@ class _ServicesTabState extends State<_ServicesTab> {
                 // Cân nặng
                 Text(
                   'Cân nặng',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -1162,8 +1265,17 @@ class _ServicesTabState extends State<_ServicesTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
-                    Text('Combo dịch vụ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    Text('Kéo ngang để xem', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      'Combo dịch vụ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'Kéo ngang để xem',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1183,10 +1295,15 @@ class _ServicesTabState extends State<_ServicesTab> {
                 const SizedBox(height: 20),
 
                 // Dịch vụ lẻ
-                const Text('Dịch vụ lẻ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                const Text(
+                  'Dịch vụ lẻ',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 8),
                 Column(
-                  children: _singleServices.map(_buildSingleServiceItem).toList(),
+                  children: _singleServices
+                      .map(_buildSingleServiceItem)
+                      .toList(),
                 ),
               ],
             ),
@@ -1207,14 +1324,20 @@ class _ServicesTabState extends State<_ServicesTab> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Icon(icon, size: 28, color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[700]),
+              Icon(
+                icon,
+                size: 28,
+                color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[700],
+              ),
               const SizedBox(width: 10),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[800],
+                  color: isSelected
+                      ? const Color(0xFF0D8F87)
+                      : Colors.grey[800],
                 ),
               ),
             ],
@@ -1254,7 +1377,11 @@ class _ServicesTabState extends State<_ServicesTab> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.fitness_center, size: 18, color: Color(0xFF0D8F87)),
+            const Icon(
+              Icons.fitness_center,
+              size: 18,
+              color: Color(0xFF0D8F87),
+            ),
             const SizedBox(width: 8),
             Text(
               label,
@@ -1297,7 +1424,10 @@ class _ServicesTabState extends State<_ServicesTab> {
                   combo['name'] as String,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -1310,14 +1440,21 @@ class _ServicesTabState extends State<_ServicesTab> {
                     .map(
                       (e) => Row(
                         children: [
-                          const Icon(Icons.check, size: 16, color: Color(0xFF0D8F87)),
+                          const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Color(0xFF0D8F87),
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               e,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[800],
+                              ),
                             ),
                           ),
                         ],
@@ -1347,7 +1484,10 @@ class _ServicesTabState extends State<_ServicesTab> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             Text(
@@ -1389,7 +1529,9 @@ class _ServicesTabState extends State<_ServicesTab> {
       'Chải lông': 11000,
     };
 
-    final base = species == 'dog' ? (dogBase[service] ?? 10000) : (catBase[service] ?? 10000);
+    final base = species == 'dog'
+        ? (dogBase[service] ?? 10000)
+        : (catBase[service] ?? 10000);
 
     // Nhẹ nhàng tăng theo mốc cân nặng (cộng thêm một ít)
     final increment = _weightIncrement();

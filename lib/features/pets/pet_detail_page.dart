@@ -12,6 +12,7 @@ class PetDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final img = pet['image']; // ✅ lấy ảnh từ pet map
 
     return Scaffold(
       body: Stack(
@@ -22,24 +23,51 @@ class PetDetailPage extends StatelessWidget {
             left: 0,
             right: 0,
             height: screenHeight * 0.5,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF1AD0BE).withOpacity(0.3),
-                    const Color(0xFF0D8F87).withOpacity(0.3),
-                  ],
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // ✅ ẢNH THÚ CƯNG (thay icon)
+                if (img != null && img.isNotEmpty)
+                  Image.asset(
+                    img,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) {
+                      return Container(
+                        color: Colors.grey[300],
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          size: 80,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    },
+                  )
+                else
+                  Container(
+                    color: Colors.grey[300],
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.pets,
+                      size: 120,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+
+                // ✅ overlay gradient để chữ/ UI nổi hơn
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.10),
+                        Colors.black.withOpacity(0.35),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.pets,
-                  size: 120,
-                  color: Colors.white.withOpacity(0.6),
-                ),
-              ),
+              ],
             ),
           ),
 
@@ -142,7 +170,7 @@ class PetDetailPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // Row 1: Tên (trái) | Giới tính (phải)
+                    // Row 1: Tên | Giới tính
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -199,7 +227,7 @@ class PetDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Row 2: Giống loài (trái) | Tuổi (phải)
+                    // Row 2: Giống | Tuổi
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -213,7 +241,7 @@ class PetDetailPage extends StatelessWidget {
             ),
           ),
 
-          // ===== NÚT QUAY LẠI GÓC TRÁI TRÊN =====
+          // ===== NÚT QUAY LẠI =====
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 16,
