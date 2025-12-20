@@ -1,8 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
+import '../../Profile/ProfilePage.dart';
 import '../auth/login_page.dart';
+import '../items/item_detail_page.dart';
+import '../posts/post_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   static const String routeName = '/home';
@@ -14,6 +18,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 2; // Trang chủ
+
+  // ====== NEW BLUE THEME (đậm) ======
+  static const Color kPrimary = Color(0xFF7AB9FF); // xanh chính
+  static const Color kPrimaryDark = Color(
+    0xFF1E90FF,
+  ); // xanh đậm (nút/icon active)
+  static const Color kSoftBg = Color(0xFFE8F2FF); // nền nhạt
 
   // ====== BANNER AUTO SLIDE ======
   late final PageController _bannerCtrl;
@@ -199,11 +210,14 @@ class _HomePageState extends State<HomePage> {
                 height: isActive ? 10 : 0,
                 margin: const EdgeInsets.only(top: 34),
                 decoration: BoxDecoration(
+                  color: isActive
+                      ? kPrimaryDark.withOpacity(0.25)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: isActive
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withOpacity(0.18),
                             offset: const Offset(0, -2),
                             blurRadius: 6,
                           ),
@@ -215,9 +229,7 @@ class _HomePageState extends State<HomePage> {
                 duration: const Duration(milliseconds: 250),
                 scale: isActive ? 1.15 : 1.0,
                 child: Material(
-                  color: isActive
-                      ? const Color(0xFF0D8F87)
-                      : Colors.transparent,
+                  color: isActive ? kPrimaryDark : Colors.transparent,
                   shape: const CircleBorder(),
                   elevation: isActive ? 8 : 0,
                   shadowColor: Colors.black45,
@@ -275,6 +287,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ================== POSTS ==================
   Widget _buildPostsTab() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -283,56 +296,61 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ✅ CARD BẤM ĐƯỢC TOÀN BỘ
   Widget _buildPostCard(Map<String, String> post) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post['title'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () =>
+            Navigator.pushNamed(context, '/post-detail', arguments: post),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post['title'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    post['content'] ?? '',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    post['source'] ?? '',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
+                    const SizedBox(height: 8),
+                    Text(
+                      post['content'] ?? '',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      post['source'] ?? '',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              onPressed: () =>
-                  Navigator.pushNamed(context, '/post-detail', arguments: post),
-              icon: const Icon(Icons.arrow_forward_ios, size: 18),
-              color: Colors.grey[600],
-            ),
-          ],
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey[600]),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // ================== HOME ==================
   Widget _buildHomeContent() {
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -392,8 +410,6 @@ class _HomePageState extends State<HomePage> {
                       }),
                     ),
                   ),
-
-                  // Text như cũ
                 ],
               ),
             ),
@@ -453,7 +469,7 @@ class _HomePageState extends State<HomePage> {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildHomeCard(item, icon); // giữ nguyên
+              return _buildHomeCard(item, icon);
             },
           ),
         ),
@@ -481,7 +497,6 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===== ẢNH / ICON =====
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: (img != null && img.isNotEmpty)
@@ -494,14 +509,12 @@ class _HomePageState extends State<HomePage> {
                 : Container(
                     height: 80,
                     width: double.infinity,
-                    color: const Color(0xFFEFF9F8),
+                    color: kSoftBg,
                     alignment: Alignment.center,
-                    child: Icon(icon, color: const Color(0xFF0D8F87), size: 40),
+                    child: Icon(icon, color: kPrimaryDark, size: 40),
                   ),
           ),
-
           const SizedBox(height: 10),
-
           Text(
             item['name'] ?? '',
             maxLines: 1,
@@ -520,6 +533,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ================== DRAWER ==================
   Drawer _buildDrawer(BuildContext context) {
     return Drawer(
       child: ListView(
@@ -530,7 +544,7 @@ class _HomePageState extends State<HomePage> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF1AD0BE), Color(0xFF0D8F87)],
+                colors: [kPrimary, kPrimaryDark],
               ),
             ),
             currentAccountPicture: CircleAvatar(
@@ -542,11 +556,8 @@ class _HomePageState extends State<HomePage> {
                   fit: BoxFit.cover,
                   width: 68,
                   height: 68,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.pets,
-                    size: 36,
-                    color: Color(0xFF0D8F87),
-                  ),
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.pets, size: 36, color: kPrimaryDark),
                 ),
               ),
             ),
@@ -557,12 +568,11 @@ class _HomePageState extends State<HomePage> {
             leading: const Icon(Icons.person_outline),
             title: const Text('Thông tin người dùng'),
             onTap: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đi tới thông tin người dùng')),
-              );
+              Navigator.pop(context); // đóng drawer
+              Navigator.pushNamed(context, ProfilePage.routeName);
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About us'),
@@ -599,9 +609,7 @@ class _TabItem {
   });
 }
 
-// ===== TRANG THÚ CƯNG =====
-
-// ===== TRANG THÚ CƯNG =====
+// ================== TRANG THÚ CƯNG ==================
 class _PetsTab extends StatefulWidget {
   const _PetsTab();
 
@@ -610,17 +618,19 @@ class _PetsTab extends StatefulWidget {
 }
 
 class _PetsTabState extends State<_PetsTab> {
+  // dùng lại màu giống HomePage
+  static const Color kPrimaryDark = Color(0xFF1E90FF);
+  static const Color kSoftBg = Color(0xFFE8F2FF);
+
   String _selectedPetType = 'dog'; // 'dog' or 'cat'
   final TextEditingController _searchCtrl = TextEditingController();
 
-  // Dữ liệu mẫu (nhớ đổi đường dẫn ảnh cho đúng file thật của chủ nhân)
   final List<Map<String, String>> _dogPets = [
     {
       'name': 'Border Collie',
       'age': '2 tháng',
       'price': '7.000.000 đ',
-      'image': 'assets/images/11.jpg'
-
+      'image': 'assets/images/11.jpg',
     },
     {
       'name': 'Border Collie',
@@ -665,7 +675,7 @@ class _PetsTabState extends State<_PetsTab> {
       'name': 'Mèo Anh lông ngắn',
       'age': '5 tháng',
       'price': '4.800.000 đ',
-       'image': 'assets/images/meosco2.jpg',
+      'image': 'assets/images/meosco2.jpg',
     },
   ];
 
@@ -681,7 +691,7 @@ class _PetsTabState extends State<_PetsTab> {
 
     return Column(
       children: [
-        // 1️⃣ Banner Image
+        // Banner Image
         Container(
           height: MediaQuery.of(context).size.height * 0.25,
           margin: const EdgeInsets.all(12),
@@ -700,9 +710,8 @@ class _PetsTabState extends State<_PetsTab> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // ✅ Ảnh banner thay cho icon
                 Image.asset(
-                  'assets/images/banner1.png', // đổi theo ảnh banner của chủ nhân
+                  'assets/images/banner1.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stack) {
                     return Container(
@@ -716,10 +725,7 @@ class _PetsTabState extends State<_PetsTab> {
                     );
                   },
                 ),
-
-                // overlay nhẹ để chữ dễ đọc
                 Container(color: Colors.black.withOpacity(0.25)),
-
                 Positioned(
                   bottom: 16,
                   left: 16,
@@ -752,14 +758,14 @@ class _PetsTabState extends State<_PetsTab> {
           ),
         ),
 
-        // 2️⃣ Thanh tìm kiếm
+        // Search
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(
               hintText: 'Tìm kiếm thú cưng...',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF0D8F87)),
+              prefixIcon: const Icon(Icons.search, color: kPrimaryDark),
               filled: true,
               fillColor: Colors.grey[100],
               contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -773,16 +779,13 @@ class _PetsTabState extends State<_PetsTab> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: Color(0xFF0D8F87),
-                  width: 1.5,
-                ),
+                borderSide: const BorderSide(color: kPrimaryDark, width: 1.5),
               ),
             ),
           ),
         ),
 
-        // 3️⃣ Card chứa filter + danh sách
+        // Card filter + list
         Expanded(
           child: Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -811,7 +814,6 @@ class _PetsTabState extends State<_PetsTab> {
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 8),
-
                 Expanded(
                   child: ListView.builder(
                     itemCount: pets.length,
@@ -837,12 +839,12 @@ class _PetsTabState extends State<_PetsTab> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[200],
+          color: isSelected ? kPrimaryDark : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF0D8F87).withOpacity(0.3),
+                    color: kPrimaryDark.withOpacity(0.30),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -872,86 +874,76 @@ class _PetsTabState extends State<_PetsTab> {
   }
 
   Widget _buildPetCard(Map<String, String> pet) {
-    final img = pet['image'];
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // ✅ Ảnh bên trái thay icon
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 80,
-                height: 80,
-                color: Colors.grey[200],
-                child: Image.asset(
-                  pet['image']!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stack) {
-                    return const Icon(
-                      Icons.broken_image_outlined,
-                      size: 40,
-                      color: Colors.grey,
-                    );
-                  },
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () =>
+            Navigator.pushNamed(context, '/pet-detail', arguments: pet),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  color: kSoftBg,
+                  child: Image.asset(
+                    pet['image'] ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) {
+                      return const Icon(
+                        Icons.broken_image_outlined,
+                        size: 40,
+                        color: Colors.grey,
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-
-            const SizedBox(width: 12),
-
-            // Thông tin
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    pet['name'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pet['name'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Tuổi: ${pet['age'] ?? ''}',
-                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    pet['price'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0D8F87),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tuổi: ${pet['age'] ?? ''}',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      pet['price'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: kPrimaryDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-
-            IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/pet-detail', arguments: pet);
-              },
-              icon: const Icon(Icons.arrow_forward_ios, size: 18),
-              color: Colors.grey[600],
-            ),
-          ],
+              Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey[600]),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-
-
-// ===== TRANG VẬT PHẨM =====
+// ================== TRANG VẬT PHẨM ==================
 class _ItemsTab extends StatefulWidget {
   const _ItemsTab();
 
@@ -960,6 +952,9 @@ class _ItemsTab extends StatefulWidget {
 }
 
 class _ItemsTabState extends State<_ItemsTab> {
+  static const Color kPrimaryDark = Color(0xFF1E90FF);
+  static const Color kSoftBg = Color(0xFFE8F2FF);
+
   String _selectedCategory = 'Đồ chơi';
 
   final List<String> _categories = const [
@@ -971,55 +966,189 @@ class _ItemsTabState extends State<_ItemsTab> {
     'Bảng tên',
   ];
 
-  // ✅ Thêm field 'image' cho từng item (đường dẫn asset thật)
   final Map<String, List<Map<String, String>>> _itemsByCategory = const {
     'Đồ chơi': [
-      {'name': 'Bóng cao su', 'price': '45.000 đ', 'image': 'assets/images/dcbanh.jpg'},
-      {'name': 'Gấu Bông', 'price': '65.000 đ', 'image': 'assets/images/dcgau.jpg'},
-      {'name': 'Chuột nhồi bông', 'price': '35.000 đ', 'image': 'assets/images/dcchuot.jpg'},
-      {'name': 'Chuông', 'price': '75.000 đ', 'image': 'assets/images/dochoichuong.jpg'},
-      {'name': 'Bóng phát âm', 'price': '55.000 đ', 'image': 'assets/images/dochoi3.jpg'},
-      {'name': 'Bóng cao su', 'price': '45.000 đ', 'image': 'assets/images/dcbanh.jpg'},
+      {
+        'name': 'Bóng cao su',
+        'price': '45.000 đ',
+        'image': 'assets/images/dcbanh.jpg',
+      },
+      {
+        'name': 'Gấu Bông',
+        'price': '65.000 đ',
+        'image': 'assets/images/dcgau.jpg',
+      },
+      {
+        'name': 'Chuột nhồi bông',
+        'price': '35.000 đ',
+        'image': 'assets/images/dcchuot.jpg',
+      },
+      {
+        'name': 'Chuông',
+        'price': '75.000 đ',
+        'image': 'assets/images/dochoichuong.jpg',
+      },
+      {
+        'name': 'Bóng phát âm',
+        'price': '55.000 đ',
+        'image': 'assets/images/dochoi3.jpg',
+      },
+      {
+        'name': 'Bóng cao su',
+        'price': '45.000 đ',
+        'image': 'assets/images/dcbanh.jpg',
+      },
     ],
     'Đồ ăn': [
-      {'name': 'Royal Canin 2kg', 'price': '420.000 đ', 'image': 'assets/images/hat.jpg'},
-      {'name': 'Pate cho mèo', 'price': '35.000 đ', 'image': 'assets/images/patemeo.jpg'},
-      {'name': 'Xương gặm sạch răng', 'price': '25.000 đ', 'image': 'assets/images/xuong.jpg'},
-      {'name': 'Snack dinh dưỡng', 'price': '48.000 đ', 'image': 'assets/images/snack.jpg'},
-      {'name': 'Hạt Ganador 5kg', 'price': '550.000 đ', 'image': 'assets/images/hat.jpg'}
-   
+      {
+        'name': 'Royal Canin 2kg',
+        'price': '420.000 đ',
+        'image': 'assets/images/hat.jpg',
+      },
+      {
+        'name': 'Pate cho mèo',
+        'price': '35.000 đ',
+        'image': 'assets/images/patemeo.jpg',
+      },
+      {
+        'name': 'Xương gặm sạch răng',
+        'price': '25.000 đ',
+        'image': 'assets/images/xuong.jpg',
+      },
+      {
+        'name': 'Snack dinh dưỡng',
+        'price': '48.000 đ',
+        'image': 'assets/images/snack.jpg',
+      },
+      {
+        'name': 'Hạt Ganador 5kg',
+        'price': '550.000 đ',
+        'image': 'assets/images/hat.jpg',
+      },
     ],
     'Quần áo': [
-      {'name': 'Áo hoodie', 'price': '120.000 đ', 'image': 'assets/images/ao1.jpg'},
+      {
+        'name': 'Áo hoodie',
+        'price': '120.000 đ',
+        'image': 'assets/images/ao1.jpg',
+      },
       {'name': 'Áo mưa', 'price': '85.000 đ', 'image': 'assets/images/ao2.jpg'},
-      {'name': 'Đầm công chúa', 'price': '150.000 đ', 'image': 'assets/images/ao3.jpg'},
-      {'name': 'Áo len dệt kim', 'price': '95.000 đ', 'image': 'assets/images/ao4.jpg'},
-      {'name': 'Bộ vest lịch sự', 'price': '180.000 đ', 'image': 'assets/images/ao5.jpg'},
-      {'name': 'Áo thun cotton', 'price': '60.000 đ', 'image': 'assets/images/ao1.jpg'},
+      {
+        'name': 'Đầm công chúa',
+        'price': '150.000 đ',
+        'image': 'assets/images/ao3.jpg',
+      },
+      {
+        'name': 'Áo len dệt kim',
+        'price': '95.000 đ',
+        'image': 'assets/images/ao4.jpg',
+      },
+      {
+        'name': 'Bộ vest lịch sự',
+        'price': '180.000 đ',
+        'image': 'assets/images/ao5.jpg',
+      },
+      {
+        'name': 'Áo thun cotton',
+        'price': '60.000 đ',
+        'image': 'assets/images/ao1.jpg',
+      },
     ],
     'Lồng': [
-      {'name': 'Lồng sắt 60cm', 'price': '450.000 đ', 'image': 'assets/images/long1png'},
-      {'name': 'Lồng gấp gọn', 'price': '380.000 đ', 'image': 'assets/images/llong1png'},
-      {'name': 'Nhà gỗ ngoài trời', 'price': '850.000 đ', 'image': 'assets/images/nhago.jpg'},
-      {'name': 'Lồng mèo 3 tầng', 'price': '1.200.000 đ', 'image': 'assets/images/longmeo4.jpg'},
-      {'name': 'Túi vận chuyển', 'price': '220.000 đ', 'image': 'assets/images/balomeo2.jpg'},
-      {'name': 'Balo phi hành gia', 'price': '320.000 đ', 'image': 'assets/images/balomeo.jpg'},
+      {
+        'name': 'Lồng sắt 60cm',
+        'price': '450.000 đ',
+        'image': 'assets/images/long1png',
+      },
+      {
+        'name': 'Lồng gấp gọn',
+        'price': '380.000 đ',
+        'image': 'assets/images/llong1png',
+      },
+      {
+        'name': 'Nhà gỗ ngoài trời',
+        'price': '850.000 đ',
+        'image': 'assets/images/nhago.jpg',
+      },
+      {
+        'name': 'Lồng mèo 3 tầng',
+        'price': '1.200.000 đ',
+        'image': 'assets/images/longmeo4.jpg',
+      },
+      {
+        'name': 'Túi vận chuyển',
+        'price': '220.000 đ',
+        'image': 'assets/images/balomeo2.jpg',
+      },
+      {
+        'name': 'Balo phi hành gia',
+        'price': '320.000 đ',
+        'image': 'assets/images/balomeo.jpg',
+      },
     ],
     'Dây dắt': [
-      {'name': 'Dây da mềm 120cm', 'price': '180.000 đ', 'image': 'assets/images/day1.jpg'},
-      {'name': 'Dây tự cuộn 5m', 'price': '250.000 đ', 'image': 'assets/images/day2.jpg'},
-      {'name': 'Yếm đai chữ H', 'price': '95.000 đ', 'image': 'assets/images/day3.jpg'},
-      {'name': 'Dây nylon phản quang', 'price': '75.000 đ', 'image': 'assets/images/day4.jpg'},
-      {'name': 'Bộ dây + yếm cao cấp', 'price': '350.000 đ', 'image': 'assets/images/day5.jpg'},
-       {'name': 'Dây da mềm 120cm', 'price': '180.000 đ', 'image': 'assets/images/day1.jpg'},
+      {
+        'name': 'Dây da mềm 120cm',
+        'price': '180.000 đ',
+        'image': 'assets/images/day1.jpg',
+      },
+      {
+        'name': 'Dây tự cuộn 5m',
+        'price': '250.000 đ',
+        'image': 'assets/images/day2.jpg',
+      },
+      {
+        'name': 'Yếm đai chữ H',
+        'price': '95.000 đ',
+        'image': 'assets/images/day3.jpg',
+      },
+      {
+        'name': 'Dây nylon phản quang',
+        'price': '75.000 đ',
+        'image': 'assets/images/day4.jpg',
+      },
+      {
+        'name': 'Bộ dây + yếm cao cấp',
+        'price': '350.000 đ',
+        'image': 'assets/images/day5.jpg',
+      },
+      {
+        'name': 'Dây da mềm 120cm',
+        'price': '180.000 đ',
+        'image': 'assets/images/day1.jpg',
+      },
     ],
     'Bảng tên': [
-      {'name': 'Tag nhôm khắc laser', 'price': '50.000 đ', 'image': 'assets/images/ten1.jpg'},
-      {'name': 'Tag hình xương inox', 'price': '65.000 đ', 'image': 'assets/images/ten2.png'},
-      {'name': 'Vòng cổ có tên', 'price': '120.000 đ', 'image': 'assets/images/ten3.jpg'},
-      {'name': 'QR code thông minh', 'price': '180.000 đ', 'image': 'assets/images/ten1.jpg'},
-      {'name': 'Tag hình tim mica', 'price': '45.000 đ', 'image': 'assets/images/ten1.jpg'},
-      {'name': 'Chip định vị GPS', 'price': '550.000 đ', 'image': 'assets/images/ten2.png'},
+      {
+        'name': 'Tag nhôm khắc laser',
+        'price': '50.000 đ',
+        'image': 'assets/images/ten1.jpg',
+      },
+      {
+        'name': 'Tag hình xương inox',
+        'price': '65.000 đ',
+        'image': 'assets/images/ten2.png',
+      },
+      {
+        'name': 'Vòng cổ có tên',
+        'price': '120.000 đ',
+        'image': 'assets/images/ten3.jpg',
+      },
+      {
+        'name': 'QR code thông minh',
+        'price': '180.000 đ',
+        'image': 'assets/images/ten1.jpg',
+      },
+      {
+        'name': 'Tag hình tim mica',
+        'price': '45.000 đ',
+        'image': 'assets/images/ten1.jpg',
+      },
+      {
+        'name': 'Chip định vị GPS',
+        'price': '550.000 đ',
+        'image': 'assets/images/ten2.png',
+      },
     ],
   };
 
@@ -1043,7 +1172,6 @@ class _ItemsTabState extends State<_ItemsTab> {
           ),
         ),
         const Divider(height: 1),
-
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
@@ -1054,10 +1182,7 @@ class _ItemsTabState extends State<_ItemsTab> {
               childAspectRatio: 0.8,
             ),
             itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return _buildItemCard(item);
-            },
+            itemBuilder: (context, index) => _buildItemCard(items[index]),
           ),
         ),
       ],
@@ -1072,12 +1197,12 @@ class _ItemsTabState extends State<_ItemsTab> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[200],
+          color: isSelected ? kPrimaryDark : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF0D8F87).withOpacity(0.3),
+                    color: kPrimaryDark.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -1088,7 +1213,7 @@ class _ItemsTabState extends State<_ItemsTab> {
           category,
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.grey[700],
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -1101,69 +1226,78 @@ class _ItemsTabState extends State<_ItemsTab> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      clipBehavior: Clip.antiAlias, // ✅ giúp InkWell ăn theo bo góc
+      child: InkWell(
+        onTap: () {
+          // ✅ chuyển qua trang chi tiết vật phẩm
+          Navigator.pushNamed(
+            context,
+            ItemDetailPage.routeName,
+            arguments: item,
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
               child: Container(
-                color: const Color(0xFFEFF9F8),
+                color: kSoftBg,
                 child: (img != null && img.isNotEmpty)
                     ? Image.asset(
                         img,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) {
-                          return const Center(
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              size: 48,
-                              color: Color(0xFF0D8F87),
-                            ),
-                          );
-                        },
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            size: 48,
+                            color: kPrimaryDark,
+                          ),
+                        ),
                       )
                     : const Center(
                         child: Icon(
                           Icons.shopping_bag_outlined,
                           size: 60,
-                          color: Color(0xFF0D8F87),
+                          color: kPrimaryDark,
                         ),
                       ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item['name'] ?? '',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item['price'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0D8F87),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['name'] ?? '',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    item['price'] ?? '',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: kPrimaryDark,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
+// ================== TRANG DỊCH VỤ ==================
 
-// ===== TRANG DỊCH VỤ =====
 class _ServicesTab extends StatefulWidget {
   const _ServicesTab();
 
@@ -1172,6 +1306,8 @@ class _ServicesTab extends StatefulWidget {
 }
 
 class _ServicesTabState extends State<_ServicesTab> {
+  static const Color kPrimaryDark = Color(0xFF1E90FF);
+
   String _selectedSpecies = 'dog';
   String _selectedWeight = '<5kg';
 
@@ -1215,6 +1351,98 @@ class _ServicesTabState extends State<_ServicesTab> {
     'Chải lông',
   ];
 
+  // ===================== BOTTOM SHEET OPEN =====================
+  Future<void> _openBookingSheet({
+    required String title,
+    required List<String> items,
+    int? price,
+  }) async {
+    final res = await showServiceBookingSheet(
+      context: context,
+      primaryColor: kPrimaryDark,
+      serviceTitle: title,
+      serviceItems: items,
+      species: _selectedSpecies,
+      weight: _selectedWeight,
+      price: price,
+    );
+
+    if (!mounted || res == null) return;
+
+    // Demo: sau này thay bằng call API tạo lịch hẹn
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Đã nhận: ${res.serviceTitle} • ${res.petName} • ${_formatDate(res.date)} ${_formatTime(res.time)}',
+        ),
+      ),
+    );
+  }
+
+  // ===================== COMBO HELPER: bung "Gói 1" + chuẩn hoá tên dịch vụ =====================
+  Map<String, List<String>> get _comboMap {
+    final map = <String, List<String>>{};
+    for (final c in _combos) {
+      map[c['name'] as String] = List<String>.from(c['items'] as List);
+    }
+    return map;
+  }
+
+  List<String> _resolveComboToServiceLabels(String comboName) {
+    final visited = <String>{};
+
+    List<String> expand(String name) {
+      if (visited.contains(name)) return const [];
+      visited.add(name);
+
+      final raw = _comboMap[name];
+      if (raw == null) return [name];
+
+      final out = <String>[];
+      for (final x in raw) {
+        if (_comboMap.containsKey(x)) {
+          out.addAll(expand(x));
+        } else {
+          out.add(x);
+        }
+      }
+      return out;
+    }
+
+    final flat = expand(comboName).map((e) => e.trim()).toList();
+
+    // Chuẩn hoá một số tên cho khớp bảng giá
+    final normalized = flat.map((e) {
+      if (e == 'Nhuộm') return 'Nhuộm lông';
+      if (e == 'Tắm' || e == 'Sấy') return e; // xử lý gộp bên dưới
+      return e;
+    }).toList();
+
+    // Nếu có Tắm/Sấy -> gộp thành "Tắm + sấy" 1 lần
+    final hasBathOrDry =
+        normalized.contains('Tắm') || normalized.contains('Sấy');
+    final cleaned = normalized.where((e) => e != 'Tắm' && e != 'Sấy').toList();
+    if (hasBathOrDry) cleaned.insert(0, 'Tắm + sấy');
+
+    // Lọc trùng
+    final seen = <String>{};
+    final distinct = <String>[];
+    for (final e in cleaned) {
+      if (seen.add(e)) distinct.add(e);
+    }
+    return distinct;
+  }
+
+  int _estimateComboPrice(String comboName) {
+    final services = _resolveComboToServiceLabels(comboName);
+    int total = 0;
+    for (final s in services) {
+      total += _priceForService(s);
+    }
+    return total;
+  }
+
+  // ===================== UI =====================
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1225,7 +1453,6 @@ class _ServicesTabState extends State<_ServicesTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Chó / Mèo selector
                 Row(
                   children: [
                     Expanded(
@@ -1241,16 +1468,10 @@ class _ServicesTabState extends State<_ServicesTab> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // Cân nặng
-                Text(
+                const Text(
                   'Cân nặng',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -1258,10 +1479,8 @@ class _ServicesTabState extends State<_ServicesTab> {
                   runSpacing: 10,
                   children: _weights.map((w) => _buildWeightCard(w)).toList(),
                 ),
-
                 const SizedBox(height: 20),
 
-                // Combo dịch vụ
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
@@ -1280,21 +1499,18 @@ class _ServicesTabState extends State<_ServicesTab> {
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
-                  height: 150,
+                  height: 155,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: _combos.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final combo = _combos[index];
-                      return _buildComboCard(combo);
-                    },
+                    itemBuilder: (context, index) =>
+                        _buildComboCard(_combos[index]),
                   ),
                 ),
 
                 const SizedBox(height: 20),
 
-                // Dịch vụ lẻ
                 const Text(
                   'Dịch vụ lẻ',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -1315,11 +1531,13 @@ class _ServicesTabState extends State<_ServicesTab> {
 
   Widget _buildSpeciesCard(String species, IconData icon, String label) {
     final isSelected = _selectedSpecies == species;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedSpecies = species),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: isSelected ? 4 : 1,
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: isSelected ? 4 : 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => setState(() => _selectedSpecies = species),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
@@ -1327,7 +1545,7 @@ class _ServicesTabState extends State<_ServicesTab> {
               Icon(
                 icon,
                 size: 28,
-                color: isSelected ? const Color(0xFF0D8F87) : Colors.grey[700],
+                color: isSelected ? kPrimaryDark : Colors.grey[700],
               ),
               const SizedBox(width: 10),
               Text(
@@ -1335,9 +1553,7 @@ class _ServicesTabState extends State<_ServicesTab> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isSelected
-                      ? const Color(0xFF0D8F87)
-                      : Colors.grey[800],
+                  color: isSelected ? kPrimaryDark : Colors.grey[800],
                 ),
               ),
             ],
@@ -1349,38 +1565,34 @@ class _ServicesTabState extends State<_ServicesTab> {
 
   Widget _buildWeightCard(String label) {
     final isSelected = _selectedWeight == label;
-    return GestureDetector(
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
       onTap: () => setState(() => _selectedWeight = label),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0D8F87) : Colors.white,
+          color: isSelected ? kPrimaryDark : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF0D8F87).withOpacity(0.35)),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF0D8F87).withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+          border: Border.all(color: kPrimaryDark.withOpacity(0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? kPrimaryDark.withOpacity(0.20)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.fitness_center,
               size: 18,
-              color: Color(0xFF0D8F87),
+              color: isSelected ? Colors.white : kPrimaryDark,
             ),
             const SizedBox(width: 8),
             Text(
@@ -1396,118 +1608,168 @@ class _ServicesTabState extends State<_ServicesTab> {
     );
   }
 
+  // ✅ Combo chuyển sang Card + InkWell + mở bottom sheet
   Widget _buildComboCard(Map<String, dynamic> combo) {
-    final List<String> items = List<String>.from(combo['items'] as List);
-    return Container(
-      width: 220,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    final comboName = combo['name'] as String;
+    final items = List<String>.from(combo['items'] as List);
+
+    final resolved = _resolveComboToServiceLabels(comboName);
+    final estPrice = _estimateComboPrice(comboName);
+
+    return SizedBox(
+      width: 230,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _openBookingSheet(
+            title: comboName,
+            items: resolved, // đưa list đã bung/chuẩn hoá vào sheet
+            price: estPrice,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.spa_outlined, color: Color(0xFF0D8F87)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  combo['name'] as String,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.spa_outlined, color: kPrimaryDark),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        comboName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Ước tính: ${_formatPrice(estPrice)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[800],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: items
-                    .map(
-                      (e) => Row(
-                        children: [
-                          const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Color(0xFF0D8F87),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              e,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[800],
+                const SizedBox(height: 6),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: items
+                          .map(
+                            (e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: kPrimaryDark,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      e,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ],
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: kPrimaryDark.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Nhấn để đặt lịch',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: kPrimaryDark,
                       ),
-                    )
-                    .toList(),
-              ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSingleServiceItem(String label) {
-    final priceText = _formatPrice(_priceForService(label));
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.spa_outlined, color: Color(0xFF0D8F87)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              priceText,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0D8F87),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-          ],
         ),
       ),
     );
   }
 
+  // ✅ Dịch vụ lẻ: bấm mở bottom sheet
+  Widget _buildSingleServiceItem(String label) {
+    final price = _priceForService(label);
+    final priceText = _formatPrice(price);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () =>
+          _openBookingSheet(title: label, items: [label], price: price),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 10),
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.spa_outlined, color: kPrimaryDark),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                priceText,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: kPrimaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ===================== PRICE =====================
   int _priceForService(String service) {
-    final species = _selectedSpecies; // 'dog' or 'cat'
+    final species = _selectedSpecies;
+
     final dogBase = <String, int>{
       'Tắm + sấy': 20000,
       'Cắt móng': 8000,
@@ -1518,6 +1780,7 @@ class _ServicesTabState extends State<_ServicesTab> {
       'Tỉa lông': 22000,
       'Chải lông': 12000,
     };
+
     final catBase = <String, int>{
       'Tắm + sấy': 18000,
       'Cắt móng': 8000,
@@ -1533,10 +1796,9 @@ class _ServicesTabState extends State<_ServicesTab> {
         ? (dogBase[service] ?? 10000)
         : (catBase[service] ?? 10000);
 
-    // Nhẹ nhàng tăng theo mốc cân nặng (cộng thêm một ít)
     final increment = _weightIncrement();
     final price = base + increment;
-    return (price / 1000).round() * 1000; // làm tròn nghìn
+    return (price / 1000).round() * 1000;
   }
 
   int _weightIncrement() {
@@ -1544,11 +1806,11 @@ class _ServicesTabState extends State<_ServicesTab> {
       case '<5kg':
         return 0;
       case '<10kg':
-        return 10000; // +10k
+        return 10000;
       case '<20kg':
-        return 25000; // +25k
+        return 25000;
       case '>=20kg':
-        return 40000; // +40k
+        return 40000;
       default:
         return 0;
     }
@@ -1564,5 +1826,490 @@ class _ServicesTabState extends State<_ServicesTab> {
       if (rem == 0 && i != s.length - 1) buf.write('.');
     }
     return '${buf.toString()} đ';
+  }
+
+  // ===================== Date/Time format for snackbar =====================
+  String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+}
+
+// ============================================================================
+//                              BOTTOM SHEET
+// ============================================================================
+
+class ServiceBookingResult {
+  final String customerName;
+  final String phone;
+  final String petName;
+  final DateTime date;
+  final TimeOfDay time;
+  final String note;
+
+  final String serviceTitle;
+  final List<String> serviceItems;
+  final String species;
+  final String weight;
+  final int? price;
+
+  ServiceBookingResult({
+    required this.customerName,
+    required this.phone,
+    required this.petName,
+    required this.date,
+    required this.time,
+    required this.note,
+    required this.serviceTitle,
+    required this.serviceItems,
+    required this.species,
+    required this.weight,
+    this.price,
+  });
+}
+
+Future<ServiceBookingResult?> showServiceBookingSheet({
+  required BuildContext context,
+  required String serviceTitle,
+  required List<String> serviceItems,
+  required String species,
+  required String weight,
+  int? price,
+  Color primaryColor = const Color(0xFF1E90FF),
+}) {
+  return showModalBottomSheet<ServiceBookingResult>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withOpacity(0.35),
+    builder: (_) => _ServiceBookingSheet(
+      serviceTitle: serviceTitle,
+      serviceItems: serviceItems,
+      species: species,
+      weight: weight,
+      price: price,
+      primaryColor: primaryColor,
+    ),
+  );
+}
+
+class _ServiceBookingSheet extends StatefulWidget {
+  final String serviceTitle;
+  final List<String> serviceItems;
+  final String species;
+  final String weight;
+  final int? price;
+  final Color primaryColor;
+
+  const _ServiceBookingSheet({
+    required this.serviceTitle,
+    required this.serviceItems,
+    required this.species,
+    required this.weight,
+    required this.price,
+    required this.primaryColor,
+  });
+
+  @override
+  State<_ServiceBookingSheet> createState() => _ServiceBookingSheetState();
+}
+
+class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _petCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+
+  DateTime? _date;
+  TimeOfDay? _time;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _petCtrl.dispose();
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  String _fmtPrice(int? v) {
+    if (v == null) return '—';
+    final s = v.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final idx = s.length - i;
+      buf.write(s[i]);
+      final rem = (idx - 1) % 3;
+      if (rem == 0 && i != s.length - 1) buf.write('.');
+    }
+    return '${buf.toString()} đ';
+  }
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  String _fmtTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _time ?? TimeOfDay.now(),
+    );
+    if (picked != null) setState(() => _time = picked);
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (_date == null || _time == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn ngày và giờ.')),
+      );
+      return;
+    }
+
+    final result = ServiceBookingResult(
+      customerName: _nameCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      petName: _petCtrl.text.trim(),
+      date: _date!,
+      time: _time!,
+      note: _noteCtrl.text.trim(),
+      serviceTitle: widget.serviceTitle,
+      serviceItems: widget.serviceItems,
+      species: widget.species,
+      weight: widget.weight,
+      price: widget.price,
+    );
+
+    Navigator.pop(context, result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+
+                  Row(
+                    children: [
+                      Icon(Icons.event_available, color: widget.primaryColor),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Đặt lịch dịch vụ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Summary
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.primaryColor.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: widget.primaryColor.withOpacity(0.18),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.serviceTitle,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _chip(
+                              'Loài: ${widget.species == 'dog' ? 'Chó' : 'Mèo'}',
+                            ),
+                            _chip('Cân nặng: ${widget.weight}'),
+                            _chip('Giá: ${_fmtPrice(widget.price)}'),
+                          ],
+                        ),
+                        if (widget.serviceItems.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          ...widget.serviceItems
+                              .take(8)
+                              .map(
+                                (e) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check,
+                                        size: 16,
+                                        color: widget.primaryColor,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          e,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _field(
+                          controller: _nameCtrl,
+                          label: 'Họ và tên',
+                          icon: Icons.person,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Vui lòng nhập họ tên'
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+                        _field(
+                          controller: _phoneCtrl,
+                          label: 'Số điện thoại',
+                          icon: Icons.phone,
+                          keyboardType: TextInputType.phone,
+                          validator: (v) {
+                            final s = (v ?? '').trim();
+                            if (s.isEmpty) return 'Vui lòng nhập số điện thoại';
+                            if (s.length < 9)
+                              return 'Số điện thoại chưa hợp lệ';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        _field(
+                          controller: _petCtrl,
+                          label: 'Tên thú cưng',
+                          icon: Icons.pets,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Vui lòng nhập tên thú cưng'
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _pickCard(
+                                title: 'Ngày',
+                                value: _date == null
+                                    ? 'Chọn ngày'
+                                    : _fmtDate(_date!),
+                                icon: Icons.calendar_month,
+                                onTap: _pickDate,
+                                color: widget.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _pickCard(
+                                title: 'Giờ',
+                                value: _time == null
+                                    ? 'Chọn giờ'
+                                    : _fmtTime(_time!),
+                                icon: Icons.access_time,
+                                onTap: _pickTime,
+                                color: widget.primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+                        _field(
+                          controller: _noteCtrl,
+                          label: 'Ghi chú (tuỳ chọn)',
+                          icon: Icons.notes,
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 14),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: _submit,
+                            child: const Text(
+                              'Xác nhận đặt lịch',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _field({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
+  Widget _pickCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.25)),
+          color: color.withOpacity(0.06),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

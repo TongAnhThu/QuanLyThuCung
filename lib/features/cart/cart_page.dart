@@ -13,19 +13,38 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   final CartService _cart = CartService.instance;
 
+  // ✅ Pastel xanh theo #BDE0FE nhưng đậm hơn để dễ nhìn
+  static const Color kPrimary = Color(0xFF8EC5FF);
+  static const Color kPrimaryDark = Color(0xFF5FA8FF);
+
   int get _totalPrice => _cart.totalPrice();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF6FAFF),
       appBar: AppBar(
+        backgroundColor: kPrimary,
+        foregroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Giỏ hàng'),
-        elevation: 0,
+        actions: [
+          if (_cart.items.isNotEmpty)
+            IconButton(
+              tooltip: 'Xóa tất cả',
+              icon: const Icon(Icons.delete_sweep_outlined),
+              onPressed: () {
+                setState(() => _cart.clear());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã xóa toàn bộ giỏ hàng')),
+                );
+              },
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -49,8 +68,8 @@ class _CartPageState extends State<CartPage> {
                   : 'Bạn có ${_cart.items.length} sản phẩm trong giỏ hàng',
               style: const TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0D8F87),
+                fontWeight: FontWeight.w800,
+                color: kPrimaryDark,
               ),
             ),
           ),
@@ -81,8 +100,8 @@ class _CartPageState extends State<CartPage> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
               ],
@@ -96,15 +115,15 @@ class _CartPageState extends State<CartPage> {
                       'Tổng tiền:',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       '${_formatPrice(_totalPrice)} đ',
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0D8F87),
+                        fontWeight: FontWeight.w900,
+                        color: kPrimaryDark,
                       ),
                     ),
                   ],
@@ -123,18 +142,21 @@ class _CartPageState extends State<CartPage> {
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D8F87),
+                      backgroundColor: kPrimaryDark,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[300],
+                      disabledForegroundColor: Colors.grey[600],
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 0,
                     ),
                     child: const Text(
                       'Thanh toán',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -148,26 +170,38 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget _buildCartItem(Map<String, dynamic> item, int index) {
+    final img = (item['image'] ?? '').toString();
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 1.5,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Hình ảnh sản phẩm
-            Container(
-              width: 70,
-              height: 90,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.book_outlined,
-                size: 35,
-                color: Colors.grey[500],
+            // ✅ Hình ảnh sản phẩm (hiện ảnh nếu có)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 74,
+                height: 88,
+                color: const Color(0xFFEAF4FF),
+                child: img.isNotEmpty
+                    ? Image.asset(
+                        img,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.inventory_2_outlined,
+                          size: 36,
+                          color: kPrimaryDark.withOpacity(0.85),
+                        ),
+                      )
+                    : Icon(
+                        Icons.inventory_2_outlined,
+                        size: 36,
+                        color: kPrimaryDark.withOpacity(0.85),
+                      ),
               ),
             ),
             const SizedBox(width: 12),
@@ -178,46 +212,50 @@ class _CartPageState extends State<CartPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item['name'],
+                    (item['name'] ?? '').toString(),
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w800,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${_formatPrice(item['price'])} đ',
+                    '${_formatPrice(item['price'] as int)} đ',
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0D8F87),
+                      fontWeight: FontWeight.w800,
+                      color: kPrimaryDark,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
 
                   // Nút tăng/giảm số lượng
                   Row(
                     children: [
-                      _buildQuantityButton(Icons.remove, () {
-                        if (item['quantity'] > 1) {
-                          setState(() => _cart.changeQuantity(index, -1));
-                        }
-                      }),
+                      _buildQuantityButton(
+                        icon: Icons.remove,
+                        onPressed: () {
+                          if ((item['quantity'] as int) > 1) {
+                            setState(() => _cart.changeQuantity(index, -1));
+                          }
+                        },
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           '${item['quantity']}',
                           style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                       _buildQuantityButton(
-                        Icons.add,
-                        () => setState(() => _cart.changeQuantity(index, 1)),
+                        icon: Icons.add,
+                        onPressed: () =>
+                            setState(() => _cart.changeQuantity(index, 1)),
                       ),
                     ],
                   ),
@@ -235,7 +273,8 @@ class _CartPageState extends State<CartPage> {
                   ),
                 );
               },
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              icon: const Icon(Icons.delete_outline),
+              color: Colors.red[400],
             ),
           ],
         ),
@@ -243,18 +282,22 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildQuantityButton(IconData icon, VoidCallback onPressed) {
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return InkWell(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        width: 28,
-        height: 28,
+        width: 30,
+        height: 30,
         decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(6),
+          color: const Color(0xFFEAF4FF),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: kPrimary.withOpacity(0.55)),
         ),
-        child: Icon(icon, size: 18, color: Colors.grey[700]),
+        child: Icon(icon, size: 18, color: kPrimaryDark),
       ),
     );
   }

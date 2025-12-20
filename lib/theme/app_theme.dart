@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF16B9A8);
-  static const Color primaryDark = Color(0xFF0D8F87);
-  static const Color accent = Color(0xFF1ED2C0);
+  static const Color primary = Color(0xFF7AB9FF); // #7AB9FF
+  static const Color primaryDark = Color(0xFF1E90FF); // #1E90FF
+  static const Color accent = Color(0xFFDCEEFF); // #DCEEFF
 }
 
 class AppTheme {
@@ -12,8 +12,16 @@ class AppTheme {
     return base.copyWith(
       colorScheme: base.colorScheme.copyWith(
         primary: AppColors.primary,
-        secondary: AppColors.accent,
+        secondary: AppColors.primary,
       ),
+
+      // AppBar nhìn rõ hơn (vì nền xanh nhạt dễ bị “trôi”)
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white, // chữ/icon trắng
+        elevation: 0,
+      ),
+
       scaffoldBackgroundColor: const Color(0xFFF1F4F7),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -28,7 +36,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.primaryDark,
+            width: 1.5,
+          ),
         ),
         prefixIconColor: AppColors.primaryDark,
       ),

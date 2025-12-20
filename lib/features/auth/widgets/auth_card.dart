@@ -6,6 +6,10 @@ class AuthCard extends StatelessWidget {
   final List<Widget> children;
   const AuthCard({super.key, required this.title, required this.children});
 
+  // 🎨 Palette xanh pastel -> xanh dương (đậm hơn #BDE0FE)
+  static const Color kTop = Color(0xFF7FC8FF); // xanh pastel sáng
+  static const Color kBottom = Color(0xFF1E90FF); // xanh dương đậm (DodgerBlue)
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -18,15 +22,15 @@ class AuthCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1AD0BE), Color(0xFF0D8F87)],
+          colors: [kTop, kBottom],
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withOpacity(0.22),
             blurRadius: 24,
             offset: const Offset(0, 10),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -36,7 +40,7 @@ class AuthCard extends StatelessWidget {
           const SizedBox(height: 8),
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withOpacity(0.18),
             child: const Icon(Icons.pets, color: Colors.white, size: 36),
           ),
           const SizedBox(height: 16),
@@ -53,7 +57,7 @@ class AuthCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withOpacity(0.12),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -70,7 +74,15 @@ class AuthCard extends StatelessWidget {
 class GradientButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
-  const GradientButton({super.key, required this.label, required this.onPressed});
+  const GradientButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+
+  // Đồng bộ màu với AuthCard
+  static const Color kTop = AuthCard.kTop;
+  static const Color kBottom = AuthCard.kBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +94,7 @@ class GradientButton extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.accent, AppColors.primaryDark],
+            colors: [kTop, kBottom],
           ),
           borderRadius: BorderRadius.circular(24),
         ),

@@ -5,6 +5,12 @@ class GradientBackground extends StatelessWidget {
   final Widget child;
   const GradientBackground({super.key, required this.child});
 
+  // 🎨 Nền pastel -> xanh dương
+  static const Color kBgTopLeft = Color(0xFFE8F2FF); // nền rất nhạt
+  static const Color kBgBottomRight = Color(
+    0xFFBDE0FE,
+  ); // pastel xanh (đậm hơn chút)
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -12,25 +18,23 @@ class GradientBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0D8F87), Color(0xFF0AA69A)],
+          colors: [kBgTopLeft, kBgBottomRight],
         ),
       ),
       child: Stack(
         children: [
-          // Decorative blurred circles similar to the reference image
+          // Decorative blurred circles
           Positioned(
             top: -60,
             left: -40,
-            child: _circle(160, AppColors.accent.withOpacity(0.25)),
+            child: _circle(160, const Color(0xFF7FC8FF).withOpacity(0.35)),
           ),
           Positioned(
             bottom: -50,
             right: -40,
-            child: _circle(220, Colors.black.withOpacity(0.12)),
+            child: _circle(220, const Color(0xFF1E90FF).withOpacity(0.18)),
           ),
-          Positioned.fill(
-            child: Center(child: child),
-          )
+          Positioned.fill(child: Center(child: child)),
         ],
       ),
     );
@@ -43,9 +47,7 @@ class GradientBackground extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: color, blurRadius: 60, spreadRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: color, blurRadius: 60, spreadRadius: 10)],
       ),
     );
   }
