@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "310674472470",
+    "project_id": "damh-ltdd",
+    "storage_bucket": "damh-ltdd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:310674472470:android:1ae0aff9926e0a12de3f37",
+        "android_client_info": {
+          "package_name": "com.example.appshopbanthucung"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqb57-SRndFr5xPY1r8rNyLyUCbyWxuxU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:310674472470:android:a73922aa120b8081de3f37",
+        "android_client_info": {
+          "package_name": "com.example.doanmonhoc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqb57-SRndFr5xPY1r8rNyLyUCbyWxuxU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
