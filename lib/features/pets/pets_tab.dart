@@ -1,70 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../../theme/home_colors.dart';
+import '/models/thu_cung_model.dart';
 
 class PetsTab extends StatefulWidget {
-  const PetsTab({super.key});
+  const PetsTab();
 
   @override
   State<PetsTab> createState() => _PetsTabState();
 }
 
 class _PetsTabState extends State<PetsTab> {
+  static const Color kPrimaryDark = Color(0xFF1E90FF);
+  static const Color kSoftBg = Color(0xFFE8F2FF);
+
   String _selectedPetType = 'dog';
   final TextEditingController _searchCtrl = TextEditingController();
-
-  final List<Map<String, String>> _dogPets = [
-    {
-      'name': 'Border Collie',
-      'age': '2 tháng',
-      'price': '7.000.000 đ',
-      'image': 'assets/images/11.jpg',
-    },
-    {
-      'name': 'Border Collie',
-      'age': '3 tháng',
-      'price': '7.500.000 đ',
-      'image': 'assets/images/21.jpg',
-    },
-    {
-      'name': 'Phốc Sóc',
-      'age': '2 tháng',
-      'price': '8.000.000 đ',
-      'image': 'assets/images/12.jpg',
-    },
-    {
-      'name': 'Phốc Sóc',
-      'age': '3 tháng',
-      'price': '8.500.000 đ',
-      'image': 'assets/images/22.jpeg',
-    },
-  ];
-
-  final List<Map<String, String>> _catPets = [
-    {
-      'name': 'Mèo Anh lông ngắn',
-      'age': '2 tháng',
-      'price': '3.500.000 đ',
-      'image': 'assets/images/meosco1.jpg',
-    },
-    {
-      'name': 'Mèo Anh lông ngắn',
-      'age': '3 tháng',
-      'price': '3.800.000 đ',
-      'image': 'assets/images/meosco2.jpg',
-    },
-    {
-      'name': 'Mèo Anh lông ngắn',
-      'age': '4 tháng',
-      'price': '4.200.000 đ',
-      'image': 'assets/images/meotaicup1.jpg',
-    },
-    {
-      'name': 'Mèo Anh lông ngắn',
-      'age': '5 tháng',
-      'price': '4.800.000 đ',
-      'image': 'assets/images/meosco2.jpg',
-    },
-  ];
 
   @override
   void dispose() {
@@ -72,13 +22,50 @@ class _PetsTabState extends State<PetsTab> {
     super.dispose();
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> _petStream() {
+    return FirebaseFirestore.instance
+        .collection('pets')
+        .where('type', isEqualTo: _selectedPetType)
+        .snapshots();
+  }
+
+  bool _matchSearch(String text, String keyword) {
+    final t = text.toLowerCase().trim();
+    final k = keyword.toLowerCase().trim();
+    if (k.isEmpty) return true;
+    return t.contains(k);
+  }
+
+  Widget _buildPetImage(String path) {
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(
+          Icons.broken_image_outlined,
+          size: 40,
+          color: Colors.grey,
+        ),
+      );
+    }
+    return Image.asset(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Icon(
+        Icons.broken_image_outlined,
+        size: 40,
+        color: Colors.grey,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pets = _selectedPetType == 'dog' ? _dogPets : _catPets;
+    final keyword = _searchCtrl.text;
 
     return Column(
       children: [
-        // Banner Image
+        // Banner
         Container(
           height: MediaQuery.of(context).size.height * 0.25,
           margin: const EdgeInsets.all(12),
@@ -100,20 +87,18 @@ class _PetsTabState extends State<PetsTab> {
                 Image.asset(
                   'assets/images/banner1.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stack) {
-                    return Container(
-                      color: Colors.grey[300],
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        size: 70,
-                        color: Colors.grey[600],
-                      ),
-                    );
-                  },
+                  errorBuilder: (context, error, stack) => Container(
+                    color: Colors.grey[300],
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 70,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ),
                 Container(color: Colors.black.withOpacity(0.25)),
-                Positioned(
+                const Positioned(
                   bottom: 16,
                   left: 16,
                   child: Column(
@@ -125,15 +110,9 @@ class _PetsTabState extends State<PetsTab> {
                           color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.35),
-                              blurRadius: 8,
-                            ),
-                          ],
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Thú cưng yêu thương',
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
@@ -150,12 +129,10 @@ class _PetsTabState extends State<PetsTab> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: TextField(
             controller: _searchCtrl,
+            onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               hintText: 'Tìm kiếm thú cưng...',
-              prefixIcon: const Icon(
-                Icons.search,
-                color: HomeColors.primaryDark,
-              ),
+              prefixIcon: const Icon(Icons.search, color: kPrimaryDark),
               filled: true,
               fillColor: Colors.grey[100],
               contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -169,10 +146,7 @@ class _PetsTabState extends State<PetsTab> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: HomeColors.primaryDark,
-                  width: 1.5,
-                ),
+                borderSide: const BorderSide(color: kPrimaryDark, width: 1.5),
               ),
             ),
           ),
@@ -207,12 +181,35 @@ class _PetsTabState extends State<PetsTab> {
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 8),
+
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: pets.length,
-                    itemBuilder: (context, index) {
-                      final pet = pets[index];
-                      return _buildPetCard(pet);
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: _petStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Lỗi: ${snapshot.error}'));
+                      }
+
+                      final docs = snapshot.data?.docs ?? [];
+                      final pets = docs
+                          .map((d) => ThuCungModel.tuDoc(d))
+                          .where((p) => _matchSearch(p.ten, keyword))
+                          .toList();
+
+                      if (pets.isEmpty) {
+                        return const Center(
+                            child: Text('Không có thú cưng phù hợp'));
+                      }
+
+                      return ListView.builder(
+                        itemCount: pets.length,
+                        itemBuilder: (context, index) =>
+                            _buildPetCard(pets[index]),
+                      );
                     },
                   ),
                 ),
@@ -232,12 +229,12 @@ class _PetsTabState extends State<PetsTab> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? HomeColors.primaryDark : Colors.grey[200],
+          color: isSelected ? kPrimaryDark : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: HomeColors.primaryDark.withOpacity(0.30),
+                    color: kPrimaryDark.withOpacity(0.30),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -266,15 +263,28 @@ class _PetsTabState extends State<PetsTab> {
     );
   }
 
-  Widget _buildPetCard(Map<String, String> pet) {
+  Widget _buildPetCard(ThuCungModel pet) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () =>
-            Navigator.pushNamed(context, '/pet-detail', arguments: pet),
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/pet-detail',
+            arguments: {
+              'id': pet.id,
+              'type': pet.loai,
+              'name': pet.ten,
+              // ✅ giữ number để detail muốn xử lý gì cũng được
+              'age': pet.tuoiThang,
+              'price': pet.gia,
+              'image': pet.hinhAnh,
+            },
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -284,18 +294,8 @@ class _PetsTabState extends State<PetsTab> {
                 child: Container(
                   width: 80,
                   height: 80,
-                  color: HomeColors.softBg,
-                  child: Image.asset(
-                    pet['image'] ?? '',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) {
-                      return const Icon(
-                        Icons.broken_image_outlined,
-                        size: 40,
-                        color: Colors.grey,
-                      );
-                    },
-                  ),
+                  color: kSoftBg,
+                  child: _buildPetImage(pet.hinhAnh),
                 ),
               ),
               const SizedBox(width: 12),
@@ -304,7 +304,7 @@ class _PetsTabState extends State<PetsTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      pet['name'] ?? '',
+                      pet.ten,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -312,22 +312,23 @@ class _PetsTabState extends State<PetsTab> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Tuổi: ${pet['age'] ?? ''}',
+                      'Tuổi: ${pet.tuoiHienThi}',
                       style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      pet['price'] ?? '',
+                      pet.giaHienThi,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: HomeColors.primaryDark,
+                        color: kPrimaryDark,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey[600]),
+              Icon(Icons.arrow_forward_ios,
+                  size: 18, color: Colors.grey[600]),
             ],
           ),
         ),
