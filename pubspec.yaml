@@ -15,6 +15,7 @@ dependencies:
   animated_bottom_navigation_bar: ^1.4.0
   firebase_core: ^4.3.0
   firebase_database: ^12.1.1
+  onesignal_flutter: ^5.3.5
 
 dev_dependencies:
   flutter_test:

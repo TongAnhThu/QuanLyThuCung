@@ -43,16 +43,14 @@ Future<ServiceBookingResult?> showServiceBookingSheet({
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withOpacity(0.35),
-    builder: (_) {
-      return _ServiceBookingSheet(
-        serviceTitle: serviceTitle,
-        serviceItems: serviceItems,
-        species: species,
-        weight: weight,
-        price: price,
-        primaryColor: primaryColor,
-      );
-    },
+    builder: (_) => _ServiceBookingSheet(
+      serviceTitle: serviceTitle,
+      serviceItems: serviceItems,
+      species: species,
+      weight: weight,
+      price: price,
+      primaryColor: primaryColor,
+    ),
   );
 }
 
@@ -110,8 +108,7 @@ class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
   }
 
   String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/'
-      '${d.month.toString().padLeft(2, '0')}/${d.year}';
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   String _fmtTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -137,6 +134,7 @@ class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
     if (_date == null || _time == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn ngày và giờ.')),
@@ -200,8 +198,6 @@ class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
                       ),
                     ),
                   ),
-
-                  // Header
                   Row(
                     children: [
                       Icon(Icons.event_available, color: widget.primaryColor),
@@ -223,7 +219,7 @@ class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
                   ),
                   const SizedBox(height: 6),
 
-                  // Summary card
+                  // Summary
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -256,9 +252,9 @@ class _ServiceBookingSheetState extends State<_ServiceBookingSheet> {
                           ],
                         ),
                         if (widget.serviceItems.isNotEmpty) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           ...widget.serviceItems
-                              .take(6)
+                              .take(8)
                               .map(
                                 (e) => Padding(
                                   padding: const EdgeInsets.only(bottom: 4),

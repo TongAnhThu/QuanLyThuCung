@@ -2,8 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 //import '../../theme/app_theme.dart';
-import 'widgets/auth_card.dart';
-import 'widgets/gradient_background.dart';
+import '../widgets/auth_card.dart';
+import '../widgets/gradient_background.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {

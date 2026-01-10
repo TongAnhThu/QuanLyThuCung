@@ -1,11 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../theme/app_theme.dart';
-import 'widgets/auth_card.dart';
-import 'widgets/gradient_background.dart';
+import '../../../theme/app_theme.dart';
+import '../widgets/auth_card.dart';
+import '../widgets/gradient_background.dart';
 import 'register_page.dart';
-import '../home/home_page.dart';
+import '../../home/widgets/home_page.dart';
 import 'forgot_page.dart';
 
 class LoginPage extends StatefulWidget {

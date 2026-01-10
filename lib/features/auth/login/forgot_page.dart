@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'widgets/auth_card.dart';
-import 'widgets/gradient_background.dart';
+import '../widgets/auth_card.dart';
+import '../widgets/gradient_background.dart';
 import 'login_page.dart';
 
 class ForgotPage extends StatefulWidget {
