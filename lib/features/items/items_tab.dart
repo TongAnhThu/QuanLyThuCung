@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../items/item_detail_page.dart';
 import '../../../theme/home_colors.dart';
+import '/models/san_pham_model.dart'; 
 
 class ItemsTab extends StatefulWidget {
   const ItemsTab({super.key});
@@ -10,242 +13,135 @@ class ItemsTab extends StatefulWidget {
 }
 
 class _ItemsTabState extends State<ItemsTab> {
-  String _selectedCategory = 'Đồ chơi';
+  static const String kProductsCol = 'products';
+  static const String kCategoriesCol = 'categories';
 
-  final List<String> _categories = const [
-    'Đồ chơi',
-    'Đồ ăn',
-    'Quần áo',
-    'Lồng',
-    'Dây dắt',
-    'Bảng tên',
-  ];
+  String? _selectedCategory; 
 
-  final Map<String, List<Map<String, String>>> _itemsByCategory = const {
-    'Đồ chơi': [
-      {
-        'name': 'Bóng cao su',
-        'price': '45.000 đ',
-        'image': 'assets/images/dcbanh.jpg',
-      },
-      {
-        'name': 'Gấu Bông',
-        'price': '65.000 đ',
-        'image': 'assets/images/dcgau.jpg',
-      },
-      {
-        'name': 'Chuột nhồi bông',
-        'price': '35.000 đ',
-        'image': 'assets/images/dcchuot.jpg',
-      },
-      {
-        'name': 'Chuông',
-        'price': '75.000 đ',
-        'image': 'assets/images/dochoichuong.jpg',
-      },
-      {
-        'name': 'Bóng phát âm',
-        'price': '55.000 đ',
-        'image': 'assets/images/dochoi3.jpg',
-      },
-      {
-        'name': 'Bóng cao su',
-        'price': '45.000 đ',
-        'image': 'assets/images/dcbanh.jpg',
-      },
-    ],
-    'Đồ ăn': [
-      {
-        'name': 'Royal Canin 2kg',
-        'price': '420.000 đ',
-        'image': 'assets/images/hat.jpg',
-      },
-      {
-        'name': 'Pate cho mèo',
-        'price': '35.000 đ',
-        'image': 'assets/images/patemeo.jpg',
-      },
-      {
-        'name': 'Xương gặm sạch răng',
-        'price': '25.000 đ',
-        'image': 'assets/images/xuong.jpg',
-      },
-      {
-        'name': 'Snack dinh dưỡng',
-        'price': '48.000 đ',
-        'image': 'assets/images/snack.jpg',
-      },
-      {
-        'name': 'Hạt Ganador 5kg',
-        'price': '550.000 đ',
-        'image': 'assets/images/hat.jpg',
-      },
-    ],
-    'Quần áo': [
-      {
-        'name': 'Áo hoodie',
-        'price': '120.000 đ',
-        'image': 'assets/images/ao1.jpg',
-      },
-      {'name': 'Áo mưa', 'price': '85.000 đ', 'image': 'assets/images/ao2.jpg'},
-      {
-        'name': 'Đầm công chúa',
-        'price': '150.000 đ',
-        'image': 'assets/images/ao3.jpg',
-      },
-      {
-        'name': 'Áo len dệt kim',
-        'price': '95.000 đ',
-        'image': 'assets/images/ao4.jpg',
-      },
-      {
-        'name': 'Bộ vest lịch sự',
-        'price': '180.000 đ',
-        'image': 'assets/images/ao5.jpg',
-      },
-      {
-        'name': 'Áo thun cotton',
-        'price': '60.000 đ',
-        'image': 'assets/images/ao1.jpg',
-      },
-    ],
-    'Lồng': [
-      {
-        'name': 'Lồng sắt 60cm',
-        'price': '450.000 đ',
-        'image': 'assets/images/long1png',
-      },
-      {
-        'name': 'Lồng gấp gọn',
-        'price': '380.000 đ',
-        'image': 'assets/images/llong1png',
-      },
-      {
-        'name': 'Nhà gỗ ngoài trời',
-        'price': '850.000 đ',
-        'image': 'assets/images/nhago.jpg',
-      },
-      {
-        'name': 'Lồng mèo 3 tầng',
-        'price': '1.200.000 đ',
-        'image': 'assets/images/longmeo4.jpg',
-      },
-      {
-        'name': 'Túi vận chuyển',
-        'price': '220.000 đ',
-        'image': 'assets/images/balomeo2.jpg',
-      },
-      {
-        'name': 'Balo phi hành gia',
-        'price': '320.000 đ',
-        'image': 'assets/images/balomeo.jpg',
-      },
-    ],
-    'Dây dắt': [
-      {
-        'name': 'Dây da mềm 120cm',
-        'price': '180.000 đ',
-        'image': 'assets/images/day1.jpg',
-      },
-      {
-        'name': 'Dây tự cuộn 5m',
-        'price': '250.000 đ',
-        'image': 'assets/images/day2.jpg',
-      },
-      {
-        'name': 'Yếm đai chữ H',
-        'price': '95.000 đ',
-        'image': 'assets/images/day3.jpg',
-      },
-      {
-        'name': 'Dây nylon phản quang',
-        'price': '75.000 đ',
-        'image': 'assets/images/day4.jpg',
-      },
-      {
-        'name': 'Bộ dây + yếm cao cấp',
-        'price': '350.000 đ',
-        'image': 'assets/images/day5.jpg',
-      },
-      {
-        'name': 'Dây da mềm 120cm',
-        'price': '180.000 đ',
-        'image': 'assets/images/day1.jpg',
-      },
-    ],
-    'Bảng tên': [
-      {
-        'name': 'Tag nhôm khắc laser',
-        'price': '50.000 đ',
-        'image': 'assets/images/ten1.jpg',
-      },
-      {
-        'name': 'Tag hình xương inox',
-        'price': '65.000 đ',
-        'image': 'assets/images/ten2.png',
-      },
-      {
-        'name': 'Vòng cổ có tên',
-        'price': '120.000 đ',
-        'image': 'assets/images/ten3.jpg',
-      },
-      {
-        'name': 'QR code thông minh',
-        'price': '180.000 đ',
-        'image': 'assets/images/ten1.jpg',
-      },
-      {
-        'name': 'Tag hình tim mica',
-        'price': '45.000 đ',
-        'image': 'assets/images/ten1.jpg',
-      },
-      {
-        'name': 'Chip định vị GPS',
-        'price': '550.000 đ',
-        'image': 'assets/images/ten2.png',
-      },
-    ],
-  };
+  Stream<List<String>> _categoriesStream() {
+    final ref = FirebaseFirestore.instance.collection(kCategoriesCol);
+
+    return ref
+        .orderBy('order') 
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => (d.data()['name'] ?? '').toString().trim())
+            .where((s) => s.isNotEmpty)
+            .toList());
+  }
+
+  Query<Map<String, dynamic>> _queryByCategory(String category) {
+    return FirebaseFirestore.instance
+        .collection(kProductsCol)
+        .where('category', isEqualTo: category);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = _itemsByCategory[_selectedCategory] ?? [];
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 50,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: _categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final category = _categories[index];
-              return _buildCategoryChip(category);
-            },
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.8,
+    return StreamBuilder<List<String>>(
+      stream: _categoriesStream(),
+      builder: (context, catSnap) {
+        if (catSnap.hasError) {
+          return Center(
+            child: Text(
+              "Lỗi tải danh mục: ${catSnap.error}",
+              textAlign: TextAlign.center,
             ),
-            itemCount: items.length,
-            itemBuilder: (context, index) => _buildItemCard(items[index]),
-          ),
-        ),
-      ],
+          );
+        }
+
+        if (!catSnap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final categories = catSnap.data ?? const <String>[];
+
+        if (categories.isEmpty) {
+          return const Center(child: Text("Chưa có danh mục."));
+        }
+
+        final current = _selectedCategory;
+        final selected = (current != null && categories.contains(current))
+            ? current
+            : categories.first;
+
+        if (_selectedCategory != selected) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _selectedCategory = selected);
+          });
+        }
+
+        final stream = _queryByCategory(selected).snapshots();
+
+        return Column(
+          children: [
+            SizedBox(
+              height: 50,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: categories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return _buildCategoryChip(category, selected);
+                },
+              ),
+            ),
+            const Divider(height: 1),
+
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: stream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        "Lỗi tải sản phẩm: ${snapshot.error}",
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final docs = snapshot.data?.docs ?? const [];
+                  final items = docs.map((d) => SanPhamModel.tuDoc(d)).toList();
+
+                  if (items.isEmpty) {
+                    return const Center(
+                      child: Text("Chưa có sản phẩm trong danh mục này."),
+                    );
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.8,
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) =>
+                        _buildItemCard(items[index]),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildCategoryChip(String category) {
-    final isSelected = _selectedCategory == category;
+  Widget _buildCategoryChip(String category, String selected) {
+    final isSelected = selected == category;
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = category),
       child: AnimatedContainer(
@@ -275,9 +171,7 @@ class _ItemsTabState extends State<ItemsTab> {
     );
   }
 
-  Widget _buildItemCard(Map<String, String> item) {
-    final img = item['image'];
-
+  Widget _buildItemCard(SanPhamModel item) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
@@ -296,25 +190,7 @@ class _ItemsTabState extends State<ItemsTab> {
             Expanded(
               child: Container(
                 color: HomeColors.softBg,
-                child: (img != null && img.isNotEmpty)
-                    ? Image.asset(
-                        img,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(
-                            Icons.broken_image_outlined,
-                            size: 48,
-                            color: HomeColors.primaryDark,
-                          ),
-                        ),
-                      )
-                    : const Center(
-                        child: Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 60,
-                          color: HomeColors.primaryDark,
-                        ),
-                      ),
+                child: _buildProductImage(item.hinhAnh),
               ),
             ),
             Padding(
@@ -323,7 +199,7 @@ class _ItemsTabState extends State<ItemsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item['name'] ?? '',
+                    item.ten,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -333,7 +209,7 @@ class _ItemsTabState extends State<ItemsTab> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    item['price'] ?? '',
+                    item.giaHienThi,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
@@ -344,6 +220,49 @@ class _ItemsTabState extends State<ItemsTab> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductImage(String pathOrUrl) {
+    final s = pathOrUrl.trim();
+    if (s.isEmpty) {
+      return const Center(
+        child: Icon(
+          Icons.shopping_bag_outlined,
+          size: 60,
+          color: HomeColors.primaryDark,
+        ),
+      );
+    }
+
+    if (s.startsWith('http://') || s.startsWith('https://')) {
+      return Image.network(
+        s,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Center(
+          child: Icon(
+            Icons.broken_image_outlined,
+            size: 48,
+            color: HomeColors.primaryDark,
+          ),
+        ),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+    }
+
+    return Image.asset(
+      s,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 48,
+          color: HomeColors.primaryDark,
         ),
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../cart/cart_page.dart';
 import '../cart/cart_service.dart';
+import '/models/san_pham_model.dart'; 
 
 class ItemDetailPage extends StatefulWidget {
   static const String routeName = '/item-detail';
@@ -11,17 +13,10 @@ class ItemDetailPage extends StatefulWidget {
 }
 
 class _ItemDetailPageState extends State<ItemDetailPage> {
-  // Pastel xanh theo #BDE0FE nhưng đậm hơn
   static const Color kPrimary = Color(0xFF8EC5FF);
   static const Color kPrimaryDark = Color(0xFF5FA8FF);
 
   int _qty = 1;
-
-  int _parsePrice(String text) {
-    final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) return 0;
-    return int.parse(digits);
-  }
 
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
@@ -32,14 +27,12 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final item =
-        ModalRoute.of(context)!.settings.arguments as Map<String, String>;
+    final sp = ModalRoute.of(context)!.settings.arguments as SanPhamModel;
 
-    final name = item['name'] ?? 'Vật phẩm';
-    final priceText = item['price'] ?? '0';
-    final unitPrice = _parsePrice(priceText);
-    final img = (item['image'] ?? '').toString();
-    final desc = (item['desc'] ?? '').toString();
+    final name = sp.ten.isNotEmpty ? sp.ten : 'Vật phẩm';
+    final unitPrice = sp.gia;
+    final img = sp.hinhAnh.trim();
+    final desc = sp.moTa;
 
     final total = unitPrice * _qty;
 
@@ -66,39 +59,19 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Ảnh sản phẩm
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
                     child: AspectRatio(
                       aspectRatio: 16 / 10,
                       child: Container(
                         color: const Color(0xFFEAF4FF),
-                        child: img.isNotEmpty
-                            ? Image.asset(
-                                img,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Center(
-                                  child: Icon(
-                                    Icons.inventory_2_outlined,
-                                    size: 56,
-                                    color: kPrimaryDark.withOpacity(0.9),
-                                  ),
-                                ),
-                              )
-                            : Center(
-                                child: Icon(
-                                  Icons.inventory_2_outlined,
-                                  size: 56,
-                                  color: kPrimaryDark.withOpacity(0.9),
-                                ),
-                              ),
+                        child: _buildImage(img),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 14),
 
-                  // Tên + giá
                   Text(
                     name,
                     style: const TextStyle(
@@ -153,7 +126,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
                   const SizedBox(height: 16),
 
-                  // Mô tả
                   const Text(
                     'Mô tả',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
@@ -170,7 +142,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
                   const SizedBox(height: 18),
 
-                  // Chọn số lượng
                   const Text(
                     'Số lượng',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
@@ -221,7 +192,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             ),
           ),
 
-          // Bottom bar: total + add to cart
           SafeArea(
             top: false,
             child: Container(
@@ -266,7 +236,16 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     height: 46,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        CartService.instance.addItem(item, quantity: _qty);
+                        final cartItem = <String, String>{
+                          'id': sp.id,
+                          'category': sp.danhMuc,
+                          'name': sp.ten,
+                          'price': sp.gia.toString(), 
+                          'image': sp.hinhAnh,
+                          'desc': desc,
+                        };
+
+                        CartService.instance.addItem(cartItem, quantity: _qty);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -302,6 +281,47 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImage(String pathOrUrl) {
+    if (pathOrUrl.isEmpty) {
+      return Center(
+        child: Icon(
+          Icons.inventory_2_outlined,
+          size: 56,
+          color: kPrimaryDark.withOpacity(0.9),
+        ),
+      );
+    }
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+      return Image.network(
+        pathOrUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
+        errorBuilder: (_, __, ___) => Center(
+          child: Icon(
+            Icons.inventory_2_outlined,
+            size: 56,
+            color: kPrimaryDark.withOpacity(0.9),
+          ),
+        ),
+      );
+    }
+
+    return Image.asset(
+      pathOrUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Center(
+        child: Icon(
+          Icons.inventory_2_outlined,
+          size: 56,
+          color: kPrimaryDark.withOpacity(0.9),
+        ),
       ),
     );
   }

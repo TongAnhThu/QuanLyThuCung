@@ -23,9 +23,7 @@ import 'Profile/EditProfile.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   OneSignal.initialize("fa52c4a8-bd81-4bf0-9bd1-d136ee283e0f");
   await OneSignal.Notifications.requestPermission(true);
@@ -49,11 +47,16 @@ class MyApp extends StatelessWidget {
         switch (settings.name) {
           case PetDetailPage.routeName:
             final pet = settings.arguments;
-
+            if (pet is Map<String, dynamic>) {
+              return MaterialPageRoute(
+                builder: (_) => PetDetailPage(pet: pet),
+                settings: settings,
+              );
+            }
             if (pet is Map) {
               return MaterialPageRoute(
                 builder: (_) => PetDetailPage(
-                  pet: pet.map((k, v) => MapEntry(k.toString(), v.toString())),
+                  pet: pet.map((k, v) => MapEntry(k.toString(), v)),
                 ),
                 settings: settings,
               );

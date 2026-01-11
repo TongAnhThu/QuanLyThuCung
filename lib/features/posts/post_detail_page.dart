@@ -9,7 +9,6 @@ class PostDetailPage extends StatefulWidget {
 }
 
 class _PostDetailPageState extends State<PostDetailPage> {
-  // ====== BLUE THEME (đồng bộ tone mới) ======
   static const Color kPrimary = Color(0xFF7AB9FF);
   static const Color kPrimaryDark = Color(0xFF1E90FF);
   static const Color kSoftBg = Color(0xFFE8F2FF);
