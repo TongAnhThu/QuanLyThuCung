@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SanPhamModel {
   final String id;
-  final String danhMuc; // Firestore: category
-  final String ten;     // Firestore: name
-  final int gia;        // Firestore: price (number)
-  final String hinhAnh; // Firestore: image
+  final String danhMuc; 
+  final String ten;     
+  final int gia;        
+  final String hinhAnh; 
+  final String moTa;    
 
   const SanPhamModel({
     required this.id,
@@ -13,12 +14,13 @@ class SanPhamModel {
     required this.ten,
     required this.gia,
     required this.hinhAnh,
+    required this.moTa,
   });
 
   factory SanPhamModel.tuDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
 
-    // price có thể là int hoặc double -> ép về int
+    
     final rawPrice = data['price'];
     final int giaInt = (rawPrice is int)
         ? rawPrice
@@ -32,17 +34,18 @@ class SanPhamModel {
       ten: (data['name'] ?? '').toString(),
       gia: giaInt,
       hinhAnh: (data['image'] ?? '').toString(),
+      moTa: (data['moTa'] ?? '').toString(), 
     );
   }
 
   Map<String, dynamic> toMap() => {
         'category': danhMuc,
         'name': ten,
-        'price': gia, // number
+        'price': gia,
         'image': hinhAnh,
+        'moTa': moTa, 
       };
 
-  // ====== Hiển thị giá: 7.000.000 đ ======
   String get giaHienThi => _formatVnd(gia);
 
   static String _formatVnd(int value) {
