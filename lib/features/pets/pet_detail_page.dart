@@ -185,16 +185,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
                   );
                 },
               ),
-              tile(
-                icon: Icons.chat_bubble_outline,
-                title: "Chat trong app",
-                subtitle: "Mở màn hình chat (nếu có)",
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Chưa gắn trang chat")),
-                  );
-                },
-              ),
+             
               const SizedBox(height: 10),
             ],
           ),
