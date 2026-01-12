@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../items/items_tab.dart';
 import '../../pets/pets_tab.dart';
+import '../../services/services_tab.dart';
 import 'home_content.dart';
 import '../../posts/PostsTab.dart';
 
@@ -35,6 +36,7 @@ class HomeBody extends StatelessWidget {
       );
     }
     if (selectedIndex == 3) return const ItemsTab();
+    if (selectedIndex == 4) return const ServicesTab();
 
     return const Center(child: Text('Tab không hợp lệ'));
   }
