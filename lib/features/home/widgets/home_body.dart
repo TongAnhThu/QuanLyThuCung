@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../data/home_data.dart';
 import '../../items/items_tab.dart';
 import '../../pets/pets_tab.dart';
-//import '../../booking/booking_tab.dart';
 import 'home_content.dart';
-import 'posts_tab.dart';
+import '../../posts/PostsTab.dart';
 
 class HomeBody extends StatelessWidget {
   final int selectedIndex;
@@ -26,7 +24,7 @@ class HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (selectedIndex == 0) return PostsTab(posts: HomeData.posts);
+    if (selectedIndex == 0) return const PostsTab(); // ✅ Firebase
     if (selectedIndex == 1) return const PetsTab();
     if (selectedIndex == 2) {
       return HomeContent(
@@ -37,7 +35,6 @@ class HomeBody extends StatelessWidget {
       );
     }
     if (selectedIndex == 3) return const ItemsTab();
-    //if (selectedIndex == 4) return const ServicesTab();
 
     return const Center(child: Text('Tab không hợp lệ'));
   }

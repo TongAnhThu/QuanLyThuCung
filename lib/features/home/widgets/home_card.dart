@@ -7,9 +7,73 @@ class HomeCard extends StatelessWidget {
 
   const HomeCard({super.key, required this.item, required this.icon});
 
+  Widget _buildImage(String path) {
+    final p = path.trim();
+
+    if (p.isEmpty) {
+      return Container(
+        height: 80,
+        width: double.infinity,
+        color: HomeColors.softBg,
+        alignment: Alignment.center,
+        child: Icon(icon, color: HomeColors.primaryDark, size: 40),
+      );
+    }
+
+    // ✅ URL từ Firebase / web
+    if (p.startsWith('http://') || p.startsWith('https://')) {
+      return Image.network(
+        p,
+        height: 80,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            height: 80,
+            width: double.infinity,
+            color: HomeColors.softBg,
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stack) {
+          return Container(
+            height: 80,
+            width: double.infinity,
+            color: HomeColors.softBg,
+            alignment: Alignment.center,
+            child: Icon(Icons.broken_image, color: HomeColors.primaryDark, size: 34),
+          );
+        },
+      );
+    }
+
+    // ✅ asset local
+    return Image.asset(
+      p,
+      height: 80,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stack) {
+        return Container(
+          height: 80,
+          width: double.infinity,
+          color: HomeColors.softBg,
+          alignment: Alignment.center,
+          child: Icon(Icons.broken_image, color: HomeColors.primaryDark, size: 34),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final img = item['image'];
+    final img = item['image'] ?? '';
 
     return Container(
       width: 160,
@@ -30,20 +94,7 @@ class HomeCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: (img != null && img.isNotEmpty)
-                ? Image.asset(
-                    img,
-                    height: 80,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    height: 80,
-                    width: double.infinity,
-                    color: HomeColors.softBg,
-                    alignment: Alignment.center,
-                    child: Icon(icon, color: HomeColors.primaryDark, size: 40),
-                  ),
+            child: _buildImage(img),
           ),
           const SizedBox(height: 10),
           Text(

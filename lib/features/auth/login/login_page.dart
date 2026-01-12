@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Quên tài khoản hoặc mật khẩu?'),
+                            child: const Text('Quên mật khẩu?'),
                           ),
                         ],
                       ),
