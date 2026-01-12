@@ -12,7 +12,20 @@
           "package_name": "com.example.appshopbanthucung"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "310674472470-092jq0jre3f7i2ooi1ho7ag8v3toahmf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.appshopbanthucung",
+            "certificate_hash": "3336add325d2dd19e125bbc53459e01d6a211121"
+          }
+        },
+        {
+          "client_id": "310674472470-qh6agqnj4jcib7d36lkkjuh693c9kj2b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBqb57-SRndFr5xPY1r8rNyLyUCbyWxuxU"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "310674472470-qh6agqnj4jcib7d36lkkjuh693c9kj2b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "310674472470-0thgbr4amntppit7lgc4qp4lftg0fbs5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appshopbanthucung"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +56,12 @@
           "package_name": "com.example.doanmonhoc"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "310674472470-qh6agqnj4jcib7d36lkkjuh693c9kj2b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBqb57-SRndFr5xPY1r8rNyLyUCbyWxuxU"
@@ -39,7 +69,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "310674472470-qh6agqnj4jcib7d36lkkjuh693c9kj2b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "310674472470-0thgbr4amntppit7lgc4qp4lftg0fbs5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appshopbanthucung"
+              }
+            }
+          ]
         }
       }
     }

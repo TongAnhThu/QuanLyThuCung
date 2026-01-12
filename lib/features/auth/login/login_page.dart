@@ -84,19 +84,37 @@ class _LoginPageState extends State<LoginPage> {
                             : null,
                       ),
                       const SizedBox(height: 8),
+
                       Row(
                         children: [
-                          Checkbox(
-                            value: _staySignedIn,
-                            activeColor: AppColors.primaryDark,
-                            onChanged: (v) =>
-                                setState(() => _staySignedIn = v ?? false),
+                          Expanded(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: _staySignedIn,
+                                  activeColor: AppColors.primaryDark,
+                                  onChanged: (v) => setState(
+                                    () => _staySignedIn = v ?? false,
+                                  ),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Giữ đăng nhập',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: false,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const Text(
-                            'Giữ đăng nhập',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          const Spacer(),
+
                           TextButton(
                             onPressed: () => Navigator.pushNamed(
                               context,
@@ -104,11 +122,24 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 0,
+                              ),
+                              minimumSize: const Size(0, 36),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
                             ),
-                            child: const Text('Quên tài khoản hoặc mật khẩu?'),
+                            child: const Text(
+                              'Quên mật khẩu?',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,
+                            ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 4),
                       GradientButton(
                         label: _isLoading ? 'ĐANG ĐĂNG NHẬP...' : 'LOGIN',
@@ -143,10 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                       const Center(
                         child: Text(
                           'Hoặc tiếp tục với',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 12),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -154,7 +182,9 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         height: 44,
                         child: OutlinedButton.icon(
-                          onPressed: _isLoading ? null : () => _handleGoogleSignIn(),
+                          onPressed: _isLoading
+                              ? null
+                              : () => _handleGoogleSignIn(),
                           icon: const Icon(Icons.mail_outline),
                           label: const Text('Google'),
                           style: OutlinedButton.styleFrom(
@@ -171,7 +201,9 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         height: 44,
                         child: OutlinedButton.icon(
-                          onPressed: _isLoading ? null : () => _handleAnonymousSignIn(),
+                          onPressed: _isLoading
+                              ? null
+                              : () => _handleAnonymousSignIn(),
                           icon: const Icon(Icons.person_outline),
                           label: const Text('Tiếp tục ẩn danh'),
                           style: OutlinedButton.styleFrom(
@@ -208,7 +240,9 @@ class _LoginPageState extends State<LoginPage> {
       if (credential?.user == null || !mounted) return;
 
       // Kiểm tra profile trong Firestore
-      final userProfile = await _userService.getUserProfile(credential!.user!.uid);
+      final userProfile = await _userService.getUserProfile(
+        credential!.user!.uid,
+      );
 
       if (!mounted) return;
 
@@ -219,7 +253,8 @@ class _LoginPageState extends State<LoginPage> {
           FirstTimeSetupPage.routeName,
           arguments: {
             'uid': credential.user!.uid,
-            'displayName': userProfile?.displayName ?? credential.user!.displayName ?? '',
+            'displayName':
+                userProfile?.displayName ?? credential.user!.displayName ?? '',
             'email': credential.user!.email ?? '',
           },
         );
@@ -231,10 +266,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) {
@@ -249,59 +281,19 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final credential = await _authService.signInWithGoogle();
 
-      if (credential?.user == null || !mounted) return;
-
-      // Kiểm tra/tạo profile trong Firestore
-      var userProfile = await _userService.getUserProfile(credential!.user!.uid);
-
+      // user bấm huỷ / không lấy được user
       if (!mounted) return;
+      if (credential == null || credential.user == null) return;
 
-      if (userProfile == null) {
-        // Tạo profile mới
-        await _userService.createUserProfile(
-          uid: credential.user!.uid,
-          email: credential.user!.email ?? '',
-          displayName: credential.user!.displayName ?? 'Google User',
-        );
-        
-        // Đưa sang trang setup
-        Navigator.pushReplacementNamed(
-          context,
-          FirstTimeSetupPage.routeName,
-          arguments: {
-            'uid': credential.user!.uid,
-            'displayName': credential.user!.displayName ?? '',
-            'email': credential.user!.email ?? '',
-          },
-        );
-      } else if (!userProfile.isProfileComplete) {
-        // Profile chưa hoàn tất, đưa sang setup
-        Navigator.pushReplacementNamed(
-          context,
-          FirstTimeSetupPage.routeName,
-          arguments: {
-            'uid': credential.user!.uid,
-            'displayName': userProfile.displayName,
-            'email': userProfile.email,
-          },
-        );
-      } else {
-        // Profile đã hoàn tất, vào trang chủ
-        Navigator.pushReplacementNamed(context, HomePage.routeName);
-      }
+      // ✅ Đơn giản nhất: vào thẳng Home
+      Navigator.pushReplacementNamed(context, HomePage.routeName);
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -336,10 +328,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) {
