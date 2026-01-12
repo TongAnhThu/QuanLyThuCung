@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import '../services/service_booking_sheet.dart';
-import '../../models/booking_model.dart';
 import '../../models/service_doc.dart';
+import '../../models/booking_model.dart' as bm;
+
+import 'service_booking_sheet.dart' as sheet; // ✅ CHỐT: cùng folder
 import '../../../theme/home_colors.dart';
 
-import 'service_widgets.dart'; // ✅ file widgets tách riêng
+import 'service_widgets.dart';
 
 class ServicesTab extends StatefulWidget {
   const ServicesTab({super.key, this.userId = ''});
 
-  /// Chưa dùng FirebaseAuth thì để rỗng hoặc truyền tạm "guest_1"
   final String userId;
 
   @override
@@ -19,7 +20,7 @@ class ServicesTab extends StatefulWidget {
 }
 
 class _ServicesTabState extends State<ServicesTab> {
-  String _selectedSpecies = 'dog'; // dog | cat
+  String _selectedSpecies = 'dog';
   String _selectedWeight = '<5kg';
 
   final List<String> _weights = const ['<5kg', '<10kg', '<20kg', '>=20kg'];
@@ -31,12 +32,25 @@ class _ServicesTabState extends State<ServicesTab> {
         .snapshots();
   }
 
+  String _currentUid() {
+    if (widget.userId.trim().isNotEmpty) return widget.userId.trim();
+    return FirebaseAuth.instance.currentUser?.uid ?? '';
+  }
+
   Future<void> _openBookingSheet({
     required String title,
     required List<String> items,
     int? price,
   }) async {
-    final dichvuModel? res = await showServiceBookingSheet(
+    final uid = _currentUid();
+    if (uid.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Bạn chưa đăng nhập')));
+      return;
+    }
+
+    final bm.dichvuModel? res = await sheet.showServiceBookingSheet(
       context: context,
       primaryColor: HomeColors.primaryDark,
       serviceTitle: title,
@@ -44,7 +58,7 @@ class _ServicesTabState extends State<ServicesTab> {
       species: _selectedSpecies,
       weight: _selectedWeight,
       price: price,
-      userId: widget.userId,
+      userId: uid,
     );
 
     if (!mounted || res == null) return;
@@ -60,13 +74,13 @@ class _ServicesTabState extends State<ServicesTab> {
     );
   }
 
-  Future<void> _saveBooking(dichvuModel booking) async {
+  Future<void> _saveBooking(bm.dichvuModel booking) async {
     final data = booking.toMap();
-    data['createdAt'] = FieldValue.serverTimestamp();
+    data['createdAt'] =
+        FieldValue.serverTimestamp(); // ✅ lịch sử sort theo createdAt
+
     await FirebaseFirestore.instance.collection('service_bookings').add(data);
   }
-
-  // ===== Picker bottom sheets =====
 
   Future<void> _pickSpecies() async {
     final picked = await showModalBottomSheet<String>(
@@ -143,7 +157,6 @@ class _ServicesTabState extends State<ServicesTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ===== Header =====
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                 child: Column(
@@ -162,8 +175,6 @@ class _ServicesTabState extends State<ServicesTab> {
                       style: TextStyle(fontSize: 12.5, color: Colors.grey[800]),
                     ),
                     const SizedBox(height: 12),
-
-                    // ===== Filter bar =====
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -194,7 +205,6 @@ class _ServicesTabState extends State<ServicesTab> {
                 ),
               ),
 
-              // ===== Tabs =====
               Material(
                 color: Colors.white,
                 child: TabBar(
@@ -210,11 +220,9 @@ class _ServicesTabState extends State<ServicesTab> {
                 ),
               ),
 
-              // ===== Content =====
               Expanded(
                 child: TabBarView(
                   children: [
-                    // ===== Combos =====
                     combos.isEmpty
                         ? const Center(child: Text('Chưa có combo.'))
                         : ListView.separated(
@@ -242,7 +250,6 @@ class _ServicesTabState extends State<ServicesTab> {
                             },
                           ),
 
-                    // ===== Singles =====
                     singles.isEmpty
                         ? const Center(child: Text('Chưa có dịch vụ lẻ.'))
                         : ListView.separated(
@@ -277,8 +284,6 @@ class _ServicesTabState extends State<ServicesTab> {
       },
     );
   }
-
-  // ===== Pricing =====
 
   int _estimateComboPrice(
     ServiceDoc combo,
@@ -316,8 +321,6 @@ class _ServicesTabState extends State<ServicesTab> {
         return 0;
     }
   }
-
-  // ===== Format =====
 
   String _formatPrice(int price) {
     final s = price.toString();

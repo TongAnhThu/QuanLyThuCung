@@ -22,6 +22,8 @@ import 'features/cart/purchase_history_page.dart';
 import 'features/posts/post_detail_page.dart';
 import 'features/items/item_detail_page.dart';
 
+import 'features/services/user_my_bookings_page.dart';
+
 import 'Profile/ProfilePage.dart';
 import 'Profile/EditProfile.dart';
 
@@ -116,6 +118,8 @@ class MyApp extends StatelessWidget {
         PurchaseHistoryPage.routeName: (_) => const PurchaseHistoryPage(),
         ProfilePage.routeName: (_) => const ProfilePage(),
         EditProfilePage.routeName: (_) => const EditProfilePage(),
+        UserServiceBookingsPage.routeName: (_) =>
+            const UserServiceBookingsPage(),
       },
     );
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/model/service_booking_item.dart';
+
+import '../../services/user_my_bookings_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -43,6 +46,14 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, '/purchase-history');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: const Text('Lịch sử dịch vụ'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, UserServiceBookingsPage.routeName);
             },
           ),
           ListTile(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../models/booking_model.dart';
 import '../../../theme/home_colors.dart';
 
@@ -59,9 +60,8 @@ class _ServiceBookingSheetBody extends StatefulWidget {
 }
 
 class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
-  // === ràng buộc giờ làm ===
   static const int _openHour = 9;
-  static const int _closeHour = 19; // 19:00 là giờ cuối có thể đặt
+  static const int _closeHour = 19;
 
   final _customerNameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -74,7 +74,6 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
   @override
   void initState() {
     super.initState();
-    // để summary cập nhật theo input
     _customerNameCtrl.addListener(_refresh);
     _phoneCtrl.addListener(_refresh);
     _petCtrl.addListener(_refresh);
@@ -98,7 +97,6 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
   }
 
   bool _isValidPhone(String s) {
-    // VN phổ biến: 10 số, bắt đầu bằng 0
     final phone = s.trim();
     return RegExp(r'^0\d{9}$').hasMatch(phone);
   }
@@ -106,16 +104,17 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
   bool _isInWorkingHours(TimeOfDay t) {
     final total = t.hour * 60 + t.minute;
     final open = _openHour * 60;
-    final close = _closeHour * 60; // 19:00
+    final close = _closeHour * 60;
     return total >= open && total <= close;
   }
 
   bool get _canSubmit {
+    final uidOk = widget.userId.trim().isNotEmpty;
     final nameOk = _customerNameCtrl.text.trim().isNotEmpty;
     final petOk = _petCtrl.text.trim().isNotEmpty;
     final phoneOk = _isValidPhone(_phoneCtrl.text);
     final timeOk = _isInWorkingHours(_time);
-    return nameOk && petOk && phoneOk && timeOk;
+    return uidOk && nameOk && petOk && phoneOk && timeOk;
   }
 
   @override
@@ -167,7 +166,6 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
               'Shop sẽ gọi xác nhận sau khi bạn đặt lịch.',
               style: TextStyle(color: Colors.grey[700], fontSize: 12),
             ),
-
             const SizedBox(height: 12),
 
             TextField(
@@ -194,7 +192,7 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
                 errorText:
                     _phoneCtrl.text.isEmpty || _isValidPhone(_phoneCtrl.text)
                     ? null
-                    : 'SĐT không hợp lệ ',
+                    : 'SĐT không hợp lệ',
               ),
             ),
             const SizedBox(height: 10),
@@ -203,7 +201,7 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
               controller: _petCtrl,
               textInputAction: TextInputAction.done,
               decoration: const InputDecoration(
-                labelText: 'Tên thú cưng ',
+                labelText: 'Tên thú cưng',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -247,7 +245,7 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
                             content: Text('Shop chỉ nhận 09:00–19:00'),
                           ),
                         );
-                        return; // không set giờ
+                        return;
                       }
 
                       setState(() => _time = picked);
@@ -270,9 +268,7 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
 
             const SizedBox(height: 12),
 
-            // ✅ TÓM TẮT ĐẶT LỊCH
             _summaryCard(),
-
             const SizedBox(height: 12),
 
             SizedBox(
@@ -290,16 +286,23 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
                 ),
                 onPressed: _canSubmit
                     ? () {
+                        final uid = widget.userId.trim();
+                        if (uid.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Bạn chưa đăng nhập')),
+                          );
+                          return;
+                        }
+
                         final result = dichvuModel(
-                          userId: widget.userId,
+                          id: '',
+                          userId: uid,
                           serviceTitle: widget.serviceTitle,
                           serviceItems: widget.serviceItems,
                           species: widget.species,
                           weight: widget.weight,
-
                           bookingname: _customerNameCtrl.text.trim(),
                           bookingphone: _phoneCtrl.text.trim(),
-
                           petName: _petCtrl.text.trim(),
                           date: _date,
                           time: _time,
@@ -307,16 +310,9 @@ class _ServiceBookingSheetBodyState extends State<_ServiceBookingSheetBody> {
                           note: _noteCtrl.text.trim().isEmpty
                               ? null
                               : _noteCtrl.text.trim(),
-                          id: '',
-                          createdAt: null,
-                        );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Đã gửi yêu cầu đặt lịch. Shop sẽ liên hệ xác nhận.',
-                            ),
-                          ),
+                          pickupPoint: null,
+                          createdAt:
+                              null, // ✅ service_tab sẽ set serverTimestamp khi lưu
                         );
 
                         Navigator.pop(context, result);
