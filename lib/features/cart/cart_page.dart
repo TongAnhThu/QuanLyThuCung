@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'cart_service.dart';
+import 'checkout_page.dart';
 
 class CartPage extends StatefulWidget {
   static const String routeName = '/cart';
@@ -13,14 +14,18 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   final CartService _cart = CartService.instance;
 
-  // ✅ Pastel xanh theo #BDE0FE nhưng đậm hơn để dễ nhìn
+  // Màu chủ đạo
   static const Color kPrimary = Color(0xFF8EC5FF);
   static const Color kPrimaryDark = Color(0xFF5FA8FF);
 
-  int get _totalPrice => _cart.totalPrice();
+  int get _selectedTotal => _cart.selectedTotalPrice();
 
   @override
   Widget build(BuildContext context) {
+    final hasItems = _cart.items.isNotEmpty;
+    final selectedCount = _cart.selectedItems.length;
+    final selectedTotal = _selectedTotal;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6FAFF),
       appBar: AppBar(
@@ -33,7 +38,7 @@ class _CartPageState extends State<CartPage> {
         ),
         title: const Text('Giỏ hàng'),
         actions: [
-          if (_cart.items.isNotEmpty)
+          if (hasItems)
             IconButton(
               tooltip: 'Xóa tất cả',
               icon: const Icon(Icons.delete_sweep_outlined),
@@ -46,9 +51,10 @@ class _CartPageState extends State<CartPage> {
             ),
         ],
       ),
+
       body: Column(
         children: [
-          // Header thông tin tổng số sản phẩm
+          // Header thông tin tổng số sản phẩm + chọn tất cả
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -62,15 +68,52 @@ class _CartPageState extends State<CartPage> {
                 ),
               ],
             ),
-            child: Text(
-              _cart.items.isEmpty
-                  ? 'Giỏ hàng trống'
-                  : 'Bạn có ${_cart.items.length} sản phẩm trong giỏ hàng',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: kPrimaryDark,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasItems
+                      ? 'Bạn có ${_cart.items.length} sản phẩm trong giỏ hàng'
+                      : 'Giỏ hàng trống',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: kPrimaryDark,
+                  ),
+                ),
+                if (hasItems) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: selectedCount == _cart.items.length,
+                            onChanged: (v) =>
+                                setState(() => _cart.selectAll(v ?? false)),
+                            activeColor: kPrimaryDark,
+                          ),
+                          const Text(
+                            'Chọn tất cả',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        selectedCount > 0
+                            ? '$selectedCount được chọn'
+                            : 'Chưa chọn sản phẩm',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
 
@@ -119,7 +162,9 @@ class _CartPageState extends State<CartPage> {
                       ),
                     ),
                     Text(
-                      '${_formatPrice(_totalPrice)} đ',
+                      selectedCount > 0
+                          ? '${_formatPrice(selectedTotal)} đ'
+                          : '0 đ',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -132,13 +177,16 @@ class _CartPageState extends State<CartPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _cart.items.isEmpty
+                    onPressed: selectedCount == 0
                         ? null
                         : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Tiến hành thanh toán'),
-                              ),
+                            Navigator.pushNamed(
+                              context,
+                              CheckoutPage.routeName,
+                              arguments: {
+                                'items': _cart.selectedItems,
+                                'total': selectedTotal,
+                              },
                             );
                           },
                     style: ElevatedButton.styleFrom(
@@ -171,6 +219,7 @@ class _CartPageState extends State<CartPage> {
 
   Widget _buildCartItem(Map<String, dynamic> item, int index) {
     final img = (item['image'] ?? '').toString();
+    final isSelected = item['selected'] == true;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -180,7 +229,7 @@ class _CartPageState extends State<CartPage> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // ✅ Hình ảnh sản phẩm (hiện ảnh nếu có)
+            // Hình ảnh sản phẩm
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Container(
@@ -263,18 +312,28 @@ class _CartPageState extends State<CartPage> {
               ),
             ),
 
-            // Nút xóa
-            IconButton(
-              onPressed: () {
-                setState(() => _cart.removeAt(index));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đã xóa sản phẩm khỏi giỏ hàng'),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.delete_outline),
-              color: Colors.red[400],
+            // Checkbox chọn + nút xóa
+            Column(
+              children: [
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (v) =>
+                      setState(() => _cart.toggleSelected(index, v ?? false)),
+                  activeColor: kPrimaryDark,
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() => _cart.removeAt(index));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã xóa sản phẩm khỏi giỏ hàng'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  color: Colors.red[400],
+                ),
+              ],
             ),
           ],
         ),

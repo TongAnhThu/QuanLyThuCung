@@ -38,6 +38,14 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: const Text('Lịch sử mua hàng'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/purchase-history');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About us'),
             onTap: () {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../theme/app_theme.dart';
+//import '../../../theme/app_theme.dart';
 
 class AuthCard extends StatelessWidget {
   final String title;
@@ -73,7 +73,7 @@ class AuthCard extends StatelessWidget {
 
 class GradientButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   const GradientButton({
     super.key,
     required this.label,
@@ -89,25 +89,28 @@ class GradientButton extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: onPressed,
-      child: Ink(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [kTop, kBottom],
+      child: Opacity(
+        opacity: onPressed == null ? 0.5 : 1.0,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [kTop, kBottom],
+            ),
+            borderRadius: BorderRadius.circular(24),
           ),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+          child: Container(
+            height: 48,
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
         ),

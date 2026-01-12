@@ -42,7 +42,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD13EGuZwK80Nl948xC8TgiqN4FF1pbi-E',
-    appId: '1:310674472470:web:2f6a2fd6ad0df3cbde3f37',
+    appId: '1:310674472470:web:a8c4cc8309c5c4f2de3f37',
     messagingSenderId: '310674472470',
     projectId: 'damh-ltdd',
     authDomain: 'damh-ltdd.firebaseapp.com',
@@ -77,7 +77,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyD13EGuZwK80Nl948xC8TgiqN4FF1pbi-E',
-    appId: '1:310674472470:web:26f3c930f6d8fbfcde3f37',
+    appId: '1:310674472470:web:a8c4cc8309c5c4f2de3f37',
     messagingSenderId: '310674472470',
     projectId: 'damh-ltdd',
     authDomain: 'damh-ltdd.firebaseapp.com',

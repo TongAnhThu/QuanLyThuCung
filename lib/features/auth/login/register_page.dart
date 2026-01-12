@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 //import '../../theme/app_theme.dart';
 import '../widgets/auth_card.dart';
 import '../widgets/gradient_background.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -20,8 +22,11 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _authService = AuthService();
+  final _userService = UserService();
   bool _obscure1 = true;
   bool _obscure2 = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -68,8 +73,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (v) {
-                          if (v == null || v.isEmpty)
+                          if (v == null || v.isEmpty) {
                             return 'Vui lòng nhập email';
+                          }
                           final ok = RegExp(
                             r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
                           ).hasMatch(v);
@@ -120,16 +126,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       GradientButton(
-                        label: 'CREATE ACCOUNT',
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Đăng ký giả lập thành công!'),
-                              ),
-                            );
-                          }
-                        },
+                        label: _isLoading ? 'ĐANG TẠO TÀI KHOẢN...' : 'CREATE ACCOUNT',
+                        onPressed: _isLoading ? null : () => _handleRegister(),
                       ),
                       const SizedBox(height: 10),
                       Center(
@@ -164,5 +162,55 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleRegister() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Đăng ký Firebase Auth
+      final credential = await _authService.registerWithEmailPassword(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+        displayName: _nameCtrl.text.trim(),
+      );
+
+      if (credential?.user == null) {
+        throw 'Không thể tạo tài khoản';
+      }
+
+      // Tạo profile trong Firestore
+      await _userService.createUserProfile(
+        uid: credential!.user!.uid,
+        email: _emailCtrl.text.trim(),
+        displayName: _nameCtrl.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, LoginPage.routeName);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

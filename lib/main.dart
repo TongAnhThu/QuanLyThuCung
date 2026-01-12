@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -8,11 +9,14 @@ import 'theme/app_theme.dart';
 import 'features/auth/login/login_page.dart';
 import 'features/auth/login/register_page.dart';
 import 'features/auth/login/forgot_page.dart';
+import 'features/auth/login/first_time_setup_page.dart';
 
 import 'features/home/widgets/home_page.dart';
 
 import 'features/pets/pet_detail_page.dart';
 import 'features/cart/cart_page.dart';
+import 'features/cart/checkout_page.dart';
+import 'features/cart/purchase_history_page.dart';
 
 import 'features/posts/post_detail_page.dart';
 import 'features/items/item_detail_page.dart';
@@ -23,10 +27,23 @@ import 'Profile/EditProfile.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Firebase init error: $e');
+  }
 
-  OneSignal.initialize("fa52c4a8-bd81-4bf0-9bd1-d136ee283e0f");
-  await OneSignal.Notifications.requestPermission(true);
+  // Only initialize OneSignal on mobile platforms (not web)
+  if (!kIsWeb) {
+    try {
+      OneSignal.initialize("fa52c4a8-bd81-4bf0-9bd1-d136ee283e0f");
+      await OneSignal.Notifications.requestPermission(true);
+      print('OneSignal initialized successfully');
+    } catch (e) {
+      print('OneSignal init error: $e');
+    }
+  }
 
   runApp(const MyApp());
 }
@@ -84,8 +101,11 @@ class MyApp extends StatelessWidget {
         LoginPage.routeName: (_) => const LoginPage(),
         RegisterPage.routeName: (_) => const RegisterPage(),
         ForgotPage.routeName: (_) => const ForgotPage(),
+        FirstTimeSetupPage.routeName: (_) => const FirstTimeSetupPage(),
         HomePage.routeName: (_) => const HomePage(),
         CartPage.routeName: (_) => const CartPage(),
+        CheckoutPage.routeName: (_) => const CheckoutPage(),
+        PurchaseHistoryPage.routeName: (_) => const PurchaseHistoryPage(),
         ProfilePage.routeName: (_) => const ProfilePage(),
         EditProfilePage.routeName: (_) => const EditProfilePage(),
       },

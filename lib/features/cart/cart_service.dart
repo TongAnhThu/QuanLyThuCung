@@ -4,6 +4,8 @@ class CartService {
 
   final List<Map<String, dynamic>> _items = [];
   List<Map<String, dynamic>> get items => _items;
+  List<Map<String, dynamic>> get selectedItems =>
+      _items.where((e) => e['selected'] == true).toList(growable: false);
 
   // ✅ Thêm thú cưng (giữ nguyên)
   void addPet(Map<String, String> pet) {
@@ -19,6 +21,7 @@ class CartService {
     if (existingIndex != -1) {
       _items[existingIndex]['quantity'] =
           (_items[existingIndex]['quantity'] as int) + 1;
+      _items[existingIndex]['selected'] = true;
       return;
     }
 
@@ -30,6 +33,7 @@ class CartService {
       'quantity': 1,
       'image': pet['image'] ?? '',
       'age': pet['age'] ?? '',
+      'selected': true,
     });
   }
 
@@ -47,6 +51,7 @@ class CartService {
     if (existingIndex != -1) {
       _items[existingIndex]['quantity'] =
           (_items[existingIndex]['quantity'] as int) + quantity;
+      _items[existingIndex]['selected'] = true;
 
       // cập nhật ảnh nếu trước đó trống
       final oldImg = (_items[existingIndex]['image'] ?? '').toString();
@@ -66,6 +71,7 @@ class CartService {
       'image': item['image'] ?? '',
       // optional nếu sau này muốn có mô tả
       'desc': item['desc'] ?? '',
+      'selected': true,
     });
   }
 
@@ -87,6 +93,25 @@ class CartService {
       0,
       (sum, item) => sum + (item['price'] as int) * (item['quantity'] as int),
     );
+  }
+
+  int selectedTotalPrice() {
+    return _items.where((e) => e['selected'] == true).fold<int>(
+          0,
+          (sum, item) =>
+              sum + (item['price'] as int) * (item['quantity'] as int),
+        );
+  }
+
+  void toggleSelected(int index, bool value) {
+    if (index < 0 || index >= _items.length) return;
+    _items[index]['selected'] = value;
+  }
+
+  void selectAll(bool value) {
+    for (final item in _items) {
+      item['selected'] = value;
+    }
   }
 
   void clear() => _items.clear();

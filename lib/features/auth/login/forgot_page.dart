@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/auth_card.dart';
 import '../widgets/gradient_background.dart';
+import '../services/auth_service.dart';
 import 'login_page.dart';
 
 class ForgotPage extends StatefulWidget {
@@ -15,6 +16,8 @@ class ForgotPage extends StatefulWidget {
 class _ForgotPageState extends State<ForgotPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
+  final _authService = AuthService();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -60,18 +63,8 @@ class _ForgotPageState extends State<ForgotPage> {
                       ),
                       const SizedBox(height: 16),
                       GradientButton(
-                        label: 'KHÔI PHỤC',
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Đã gửi hướng dẫn khôi phục (giả lập UI)',
-                                ),
-                              ),
-                            );
-                          }
-                        },
+                        label: _isLoading ? 'ĐANG GỬI...' : 'KHÔI PHỤC',
+                        onPressed: _isLoading ? null : () => _handleResetPassword(),
                       ),
                       const SizedBox(height: 10),
                       TextButton(
@@ -93,5 +86,39 @@ class _ForgotPageState extends State<ForgotPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleResetPassword() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.sendPasswordResetEmail(_emailCtrl.text.trim());
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã gửi email khôi phục mật khẩu. Vui lòng kiểm tra hộp thư.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, LoginPage.routeName);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

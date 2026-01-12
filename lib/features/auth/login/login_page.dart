@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../widgets/auth_card.dart';
 import '../widgets/gradient_background.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 import 'register_page.dart';
 import '../../home/widgets/home_page.dart';
 import 'forgot_page.dart';
+import 'first_time_setup_page.dart';
 
 class LoginPage extends StatefulWidget {
   static const String routeName = '/login';
@@ -20,8 +23,11 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _authService = AuthService();
+  final _userService = UserService();
   bool _staySignedIn = true;
   bool _obscure = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -105,15 +111,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 4),
                       GradientButton(
-                        label: 'LOGIN',
-                        onPressed: () {
-                          // UI-only phase: bỏ qua xác thực và đăng nhập thật
-                          // Navigator sẽ chuyển sang trang chủ ngay khi bấm
-                          Navigator.pushReplacementNamed(
-                            context,
-                            HomePage.routeName,
-                          );
-                        },
+                        label: _isLoading ? 'ĐANG ĐĂNG NHẬP...' : 'LOGIN',
+                        onPressed: _isLoading ? null : () => _handleLogin(),
                       ),
                       const SizedBox(height: 10),
                       Center(
@@ -138,6 +137,52 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      const Divider(color: Colors.white54),
+                      const SizedBox(height: 12),
+                      const Center(
+                        child: Text(
+                          'Hoặc tiếp tục với',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: _isLoading ? null : () => _handleGoogleSignIn(),
+                          icon: const Icon(Icons.mail_outline),
+                          label: const Text('Google'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: _isLoading ? null : () => _handleAnonymousSignIn(),
+                          icon: const Icon(Icons.person_outline),
+                          label: const Text('Tiếp tục ẩn danh'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -147,5 +192,159 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await _authService.signInWithEmailPassword(
+        email: _usernameCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
+
+      if (credential?.user == null || !mounted) return;
+
+      // Kiểm tra profile trong Firestore
+      final userProfile = await _userService.getUserProfile(credential!.user!.uid);
+
+      if (!mounted) return;
+
+      // Nếu profile chưa hoàn tất hoặc chưa tồn tại, đưa sang trang setup
+      if (userProfile == null || !userProfile.isProfileComplete) {
+        Navigator.pushReplacementNamed(
+          context,
+          FirstTimeSetupPage.routeName,
+          arguments: {
+            'uid': credential.user!.uid,
+            'displayName': userProfile?.displayName ?? credential.user!.displayName ?? '',
+            'email': credential.user!.email ?? '',
+          },
+        );
+      } else {
+        // Profile đã hoàn tất, vào trang chủ
+        Navigator.pushReplacementNamed(context, HomePage.routeName);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await _authService.signInWithGoogle();
+
+      if (credential?.user == null || !mounted) return;
+
+      // Kiểm tra/tạo profile trong Firestore
+      var userProfile = await _userService.getUserProfile(credential!.user!.uid);
+
+      if (!mounted) return;
+
+      if (userProfile == null) {
+        // Tạo profile mới
+        await _userService.createUserProfile(
+          uid: credential.user!.uid,
+          email: credential.user!.email ?? '',
+          displayName: credential.user!.displayName ?? 'Google User',
+        );
+        
+        // Đưa sang trang setup
+        Navigator.pushReplacementNamed(
+          context,
+          FirstTimeSetupPage.routeName,
+          arguments: {
+            'uid': credential.user!.uid,
+            'displayName': credential.user!.displayName ?? '',
+            'email': credential.user!.email ?? '',
+          },
+        );
+      } else if (!userProfile.isProfileComplete) {
+        // Profile chưa hoàn tất, đưa sang setup
+        Navigator.pushReplacementNamed(
+          context,
+          FirstTimeSetupPage.routeName,
+          arguments: {
+            'uid': credential.user!.uid,
+            'displayName': userProfile.displayName,
+            'email': userProfile.email,
+          },
+        );
+      } else {
+        // Profile đã hoàn tất, vào trang chủ
+        Navigator.pushReplacementNamed(context, HomePage.routeName);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleAnonymousSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await _authService.signInAnonymously();
+
+      if (credential == null || credential.user == null || !mounted) return;
+
+      // Tạo profile mới cho anonymous user
+      await _userService.createUserProfile(
+        uid: credential.user!.uid,
+        email: credential.user!.email ?? 'anonymous@example.com',
+        displayName: 'Anonymous User',
+      );
+
+      if (!mounted) return;
+
+      // Đưa sang trang setup để hoàn tất thông tin
+      Navigator.pushReplacementNamed(
+        context,
+        FirstTimeSetupPage.routeName,
+        arguments: {
+          'uid': credential.user!.uid,
+          'displayName': 'Anonymous User',
+          'email': credential.user!.email ?? '',
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }
