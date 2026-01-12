@@ -136,6 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                               overflow: TextOverflow.ellipsis,
                               softWrap: false,
                             ),
+                            child: const Text('Quên mật khẩu?'),
                           ),
                         ],
                       ),
