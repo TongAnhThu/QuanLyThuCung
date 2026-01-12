@@ -1,7 +1,8 @@
-import 'package:appshopbanthucung/Profile/EditProfile.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../features/auth/services/user_service.dart';
+
+import 'package:appshopbanthucung/Profile/EditProfile.dart';
 
 class ProfilePage extends StatefulWidget {
   static const String routeName = '/profile';
@@ -14,9 +15,16 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   static const Color kPrimaryDark = Color(0xFF1E90FF);
   static const Color kSoftBg = Color(0xFFE8F2FF);
-  
-  final _userService = UserService();
+
+  static const String kUsersCol = 'users'; // ✅ đổi nếu DB cậu khác
+
   final _auth = FirebaseAuth.instance;
+
+  Future<void> _logout() async {
+    await _auth.signOut();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +39,14 @@ class _ProfilePageState extends State<ProfilePage> {
           foregroundColor: Colors.white,
           elevation: 0,
         ),
-        body: const Center(
-          child: Text('Vui lòng đăng nhập'),
-        ),
+        body: const Center(child: Text('Vui lòng đăng nhập')),
       );
     }
+
+    final docStream = FirebaseFirestore.instance
+        .collection(kUsersCol)
+        .doc(currentUser.uid)
+        .snapshots();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F4F7),
@@ -44,32 +55,58 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: kPrimaryDark,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Đăng xuất',
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
-      body: FutureBuilder(
-        future: _userService.getUserProfile(currentUser.uid),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: docStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Lỗi: ${snapshot.error}'),
-            );
+            return Center(child: Text('Lỗi: ${snapshot.error}'));
           }
 
-          final userProfile = snapshot.data;
-          final name = userProfile?.displayName ?? 'Pet Lover';
-          final email = userProfile?.email ?? currentUser.email ?? 'petshop@example.com';
-          final phone = userProfile?.phoneNumber ?? 'Chưa cập nhật';
-          final address = userProfile?.address ?? 'Chưa cập nhật';
-          final avatar = userProfile?.avatarUrl ?? 'assets/images/user_avatar.png';
+          final data = snapshot.data?.data() ?? {};
+
+          final name =
+              ((data['displayName'] ?? '').toString().trim().isNotEmpty)
+              ? data['displayName'].toString()
+              : (currentUser.displayName ?? 'Pet Lover');
+
+          final email = ((data['email'] ?? '').toString().trim().isNotEmpty)
+              ? data['email'].toString()
+              : (currentUser.email ?? 'Chưa có email');
+
+          final phone =
+              ((data['phoneNumber'] ?? '').toString().trim().isNotEmpty)
+              ? data['phoneNumber'].toString()
+              : 'Chưa cập nhật';
+
+          final address = ((data['address'] ?? '').toString().trim().isNotEmpty)
+              ? data['address'].toString()
+              : 'Chưa cập nhật';
+
+          final avatar =
+              ((data['avatarUrl'] ?? '').toString().trim().isNotEmpty)
+              ? data['avatarUrl'].toString()
+              : 'assets/images/user_avatar.png';
+
+          final ImageProvider avatarProvider = avatar.startsWith('http')
+              ? NetworkImage(avatar)
+              : AssetImage(avatar);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Header card
+                // ===== Header card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -89,10 +126,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       CircleAvatar(
                         radius: 34,
                         backgroundColor: kSoftBg,
-                        backgroundImage: avatar.startsWith('http')
-                            ? NetworkImage(avatar)
-                            : AssetImage(avatar) as ImageProvider,
-                        onBackgroundImageError: (_, __) {},
+                        backgroundImage: avatarProvider,
                         child: const SizedBox.shrink(),
                       ),
                       const SizedBox(width: 14),
@@ -102,6 +136,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
@@ -111,6 +147,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 4),
                             Text(
                               email,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey[700],
@@ -144,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const SizedBox(height: 14),
 
-                // Info card
+                // ===== Info card
                 _infoCard(
                   title: 'Thông tin',
                   children: [
@@ -156,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const SizedBox(height: 14),
 
-                // Actions
+                // ===== Actions
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
@@ -178,10 +216,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-
-                        onTap: () {
-                          Navigator.pop(context); // đóng drawer
-                          Navigator.pushNamed(context, EditProfilePage.routeName);
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            EditProfilePage.routeName,
+                          );
+                          // ✅ Không cần reload: StreamBuilder tự cập nhật
                         },
                       ),
                       const Divider(height: 1),
@@ -196,15 +236,34 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {
+                        onTap: () async {
+                          final mail = currentUser.email;
+                          if (mail == null || mail.isEmpty) return;
+
+                          await FirebaseAuth.instance.sendPasswordResetEmail(
+                            email: mail,
+                          );
+
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Chưa làm đổi mật khẩu 😄'),
+                              content: Text('Đã gửi email đặt lại mật khẩu'),
                             ),
                           );
                         },
                       ),
                     ],
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Đăng xuất'),
                   ),
                 ),
               ],

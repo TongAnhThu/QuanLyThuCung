@@ -1,3 +1,4 @@
+import 'package:appshopbanthucung/features/services/data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -29,12 +30,6 @@ import 'Profile/EditProfile.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  GoogleAuthProvider googleProvider = GoogleAuthProvider();
-
-  googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
-  googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
-
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -54,6 +49,7 @@ Future<void> main() async {
       print('OneSignal init error: $e');
     }
   }
+  await SeedServices.run(force: true);
 
   runApp(const MyApp());
 }

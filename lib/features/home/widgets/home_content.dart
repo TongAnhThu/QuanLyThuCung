@@ -93,7 +93,9 @@ class HomeContent extends StatelessWidget {
         return {
           'name': (data['title'] ?? '').toString(),
           'subtitle': '', // không cần
-          'image': _pickImage(data), // nếu sau này cậu thêm coverUrl/image thì tự lên
+          'image': _pickImage(
+            data,
+          ), // nếu sau này cậu thêm coverUrl/image thì tự lên
         };
       }).toList();
     });
@@ -132,7 +134,8 @@ class HomeContent extends StatelessWidget {
                     controller: bannerCtrl,
                     itemCount: banners.length,
                     onPageChanged: onBannerChanged,
-                    itemBuilder: (_, i) => Image.asset(banners[i], fit: BoxFit.cover),
+                    itemBuilder: (_, i) =>
+                        Image.asset(banners[i], fit: BoxFit.cover),
                   ),
                   Positioned(
                     bottom: 12,
@@ -149,7 +152,9 @@ class HomeContent extends StatelessWidget {
                           height: 7,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(99),
-                            color: active ? Colors.white : Colors.white70.withOpacity(0.6),
+                            color: active
+                                ? Colors.white
+                                : Colors.white70.withOpacity(0.6),
                           ),
                         );
                       }),
@@ -166,7 +171,6 @@ class HomeContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ====== BÀI VIẾT ======
-               
 
                 // ====== PETS ======
                 StreamBuilder<List<Map<String, String>>>(
