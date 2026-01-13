@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../data/home_data.dart';
 import '../widgets/home_section.dart';
@@ -20,19 +21,52 @@ class HomeContent extends StatelessWidget {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
+  String _fmtMoney(num v) => NumberFormat.decimalPattern('vi').format(v);
+
+  num? _readNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+
+    if (v is String) {
+      
+      final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+      if (digits.isEmpty) return null;
+      return num.tryParse(digits);
+    }
+
+    return null;
+  }
+
+  String _pickPriceText(Map<String, dynamic> data, {List<String>? keys}) {
+    final priceKeys = keys ??
+        const [
+          'price',
+          'gia',
+          'giá',
+          'cost',
+          'amount',
+          'unitPrice',
+        ];
+
+    for (final k in priceKeys) {
+      final val = _readNum(data[k]);
+      if (val != null && val > 0) {
+        return '${_fmtMoney(val)} đ';
+      }
+    }
+    return '';
+  }
+
   String _pickImage(Map<String, dynamic> data) {
-    // ưu tiên field image
     final direct = (data['image'] ?? '').toString().trim();
     if (direct.isNotEmpty) return direct;
 
-    // nếu có mảng images thì lấy tấm đầu
     final imgs = data['images'];
     if (imgs is List && imgs.isNotEmpty) {
       final first = imgs.first.toString().trim();
       if (first.isNotEmpty) return first;
     }
 
-    // fallback thêm vài key hay gặp
     return (data['imageUrl'] ??
             data['hinhAnh'] ??
             data['hinhAnhUrl'] ??
@@ -43,27 +77,25 @@ class HomeContent extends StatelessWidget {
   }
 
   Stream<List<Map<String, String>>> _petsStream({int limit = 3}) {
-    // pets: { name, image, images, age, type, ... }
     return _db.collection('pets').limit(limit).snapshots().map((snap) {
       return snap.docs.map((doc) {
         final data = doc.data();
         return {
           'name': (data['name'] ?? '').toString(),
-          'subtitle': '', // cậu bảo không cần giá/tuổi
-          'image': _pickImage(data), // assets/images/...
+          'subtitle': _pickPriceText(data), 
+          'image': _pickImage(data),
         };
       }).toList();
     });
   }
 
   Stream<List<Map<String, String>>> _productsStream({int limit = 3}) {
-    // products: { name, image, price, category, ... }
     return _db.collection('products').limit(limit).snapshots().map((snap) {
       return snap.docs.map((doc) {
         final data = doc.data();
         return {
           'name': (data['name'] ?? '').toString(),
-          'subtitle': '', // không cần giá
+          'subtitle': _pickPriceText(data), 
           'image': _pickImage(data),
         };
       }).toList();
@@ -71,13 +103,12 @@ class HomeContent extends StatelessWidget {
   }
 
   Stream<List<Map<String, String>>> _servicesStream({int limit = 3}) {
-    // services: tùy cậu đặt field, nhưng cứ lấy name + image
     return _db.collection('services').limit(limit).snapshots().map((snap) {
       return snap.docs.map((doc) {
         final data = doc.data();
         return {
           'name': (data['name'] ?? data['ten'] ?? '').toString(),
-          'subtitle': '',
+          'subtitle': _pickPriceText(data),
           'image': _pickImage(data),
         };
       }).toList();
@@ -85,17 +116,13 @@ class HomeContent extends StatelessWidget {
   }
 
   Stream<List<Map<String, String>>> _articlesStream({int limit = 3}) {
-    // articles: { title, content, sourceName, createdAt }
-    // bài viết thường không có image => để image rỗng cho HomeCard hiện icon
     return _db.collection('articles').limit(limit).snapshots().map((snap) {
       return snap.docs.map((doc) {
         final data = doc.data();
         return {
           'name': (data['title'] ?? '').toString(),
-          'subtitle': '', // không cần
-          'image': _pickImage(
-            data,
-          ), // nếu sau này cậu thêm coverUrl/image thì tự lên
+          'subtitle': '', 
+          'image': _pickImage(data),
         };
       }).toList();
     });
@@ -104,14 +131,13 @@ class HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final banners = HomeData.banners; // ✅ banner local
+    final banners = HomeData.banners;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ====== HERO BANNER (LOCAL) ======
           Container(
             height: screenHeight * 0.32,
             margin: const EdgeInsets.all(16),
@@ -164,15 +190,11 @@ class HomeContent extends StatelessWidget {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ====== BÀI VIẾT ======
-
-                // ====== PETS ======
                 StreamBuilder<List<Map<String, String>>>(
                   stream: _petsStream(limit: 3),
                   builder: (context, snap) {
@@ -186,8 +208,6 @@ class HomeContent extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 18),
-
-                // ====== PRODUCTS ======
                 StreamBuilder<List<Map<String, String>>>(
                   stream: _productsStream(limit: 3),
                   builder: (context, snap) {
@@ -201,8 +221,6 @@ class HomeContent extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 18),
-
-                // ====== SERVICES ======
                 StreamBuilder<List<Map<String, String>>>(
                   stream: _servicesStream(limit: 3),
                   builder: (context, snap) {
