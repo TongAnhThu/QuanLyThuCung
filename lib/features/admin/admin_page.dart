@@ -41,7 +41,11 @@ class _AdminPageState extends State<AdminPage>
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if (!context.mounted) return;
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
             },
           ),
         ],
@@ -85,13 +89,8 @@ class _PetsManagement extends StatelessWidget {
     final priceInt = (price is int)
         ? price
         : (price is double)
-<<<<<<< HEAD
-            ? price.toInt()
-            : int.tryParse(price?.toString() ?? '0') ?? 0;
-=======
         ? price.toInt()
         : int.tryParse(price?.toString() ?? '0') ?? 0;
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
     final text = priceInt.toString();
     final buf = StringBuffer();
     for (int i = 0; i < text.length; i++) {
@@ -162,7 +161,8 @@ class _PetsManagement extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        (data['name']?.toString().isNotEmpty ?? false)
+                                        (data['name']?.toString().isNotEmpty ??
+                                                false)
                                             ? data['name'].toString()
                                             : 'Không tên',
                                         style: const TextStyle(
@@ -175,17 +175,16 @@ class _PetsManagement extends StatelessWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         _formatPetPrice(data['price']),
-<<<<<<< HEAD
-                                        style: TextStyle(color: Colors.grey[600]),
-=======
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                         ),
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                       ),
                                       Text(
                                         'Loại: ${data['type'] == 'cat' ? 'Mèo' : 'Chó'}',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
                                       ),
                                       Text(
                                         'Tuổi: ${data['age'] ?? 'N/A'}',
@@ -237,13 +236,9 @@ class _PetsManagement extends StatelessWidget {
     Map<String, dynamic>? data,
   }) {
     final nameCtrl = TextEditingController(text: data?['name']);
-<<<<<<< HEAD
-    final priceCtrl = TextEditingController(text: data?['price']?.toString() ?? '');
-=======
     final priceCtrl = TextEditingController(
       text: data?['price']?.toString() ?? '',
     );
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
     final ageCtrl = TextEditingController(text: data?['age']?.toString() ?? '');
     final imageCtrl = TextEditingController(text: data?['image']);
     String petType = data?['type']?.toString() ?? 'dog';
@@ -272,7 +267,13 @@ class _PetsManagement extends StatelessWidget {
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Loại thú cưng', style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Loại thú cưng',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -704,10 +705,39 @@ class _ServicesManagement extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final doc = services[index];
                         final data = doc.data() as Map<String, dynamic>;
-                        final isCombo = (data['kind']?.toString() ?? 'single') == 'combo';
-                        final comboItems = ((data['itemsResolved'] as List?) ?? (data['itemsRaw'] as List?) ?? [])
-                            .map((e) => e.toString())
-                            .toList();
+                        final isCombo =
+                            (data['kind']?.toString() ?? 'single') == 'combo';
+                        final comboItems =
+                            ((data['itemsResolved'] as List?) ??
+                                    (data['itemsRaw'] as List?) ??
+                                    [])
+                                .map((e) => e.toString())
+                                .toList();
+
+                        // Tính giá combo từ các dịch vụ lẻ
+                        int comboDogPrice = 0;
+                        int comboCatPrice = 0;
+                        if (isCombo && comboItems.isNotEmpty) {
+                          for (final itemName in comboItems) {
+                            try {
+                              final itemDoc = services.firstWhere(
+                                (s) =>
+                                    (s.data()
+                                        as Map<String, dynamic>)['name'] ==
+                                    itemName,
+                              );
+                              final itemData =
+                                  itemDoc.data() as Map<String, dynamic>;
+                              comboDogPrice +=
+                                  (itemData['dogBase'] as num?)?.toInt() ?? 0;
+                              comboCatPrice +=
+                                  (itemData['catBase'] as num?)?.toInt() ?? 0;
+                            } catch (e) {
+                              // Bỏ qua nếu không tìm thấy dịch vụ
+                            }
+                          }
+                        }
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: Padding(
@@ -738,80 +768,89 @@ class _ServicesManagement extends StatelessWidget {
                                             ),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: isCombo ? Colors.purple[50] : Colors.blue[50],
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: isCombo
+                                                  ? Colors.purple[50]
+                                                  : Colors.blue[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Text(
                                               isCombo ? 'Combo' : 'Lẻ',
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700,
-                                                color: isCombo ? Colors.purple : const Color(0xFF1E90FF),
+                                                color: isCombo
+                                                    ? Colors.purple
+                                                    : const Color(0xFF1E90FF),
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-<<<<<<< HEAD
                                       if (!isCombo) ...[
                                         Text(
                                           'Chó: ${_formatServicePrice(data['dogBase'])}',
-                                          style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 13,
+                                          ),
                                         ),
                                         Text(
                                           'Mèo: ${_formatServicePrice(data['catBase'])}',
-                                          style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ] else ...[
                                         Text(
                                           comboItems.isEmpty
                                               ? 'Chưa chọn dịch vụ lẻ'
                                               : 'Gồm: ${comboItems.join(', ')}',
-                                          style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 13,
+                                          ),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
+                                        if (comboItems.isNotEmpty) ...[
+                                          Text(
+                                            'Chó: ${_formatServicePrice(comboDogPrice)}',
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Mèo: ${_formatServicePrice(comboCatPrice)}',
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
                                       ],
-=======
-                                      Text(
-                                        'Chó: ${_formatServicePrice(data['dogBase'])}',
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Mèo: ${_formatServicePrice(data['catBase'])}',
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontSize: 13,
-                                        ),
-                                      ),
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                     ],
                                   ),
                                 ),
                                 IconButton(
-<<<<<<< HEAD
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-=======
                                   icon: const Icon(
                                     Icons.edit,
                                     color: Colors.blue,
                                   ),
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                   onPressed: () => _showServiceDialog(
                                     context,
                                     firestore,
                                     docId: doc.id,
                                     data: data,
-<<<<<<< HEAD
                                     allServices: services,
-=======
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                   ),
                                 ),
                                 IconButton(
@@ -843,10 +882,7 @@ class _ServicesManagement extends StatelessWidget {
     FirebaseFirestore firestore, {
     String? docId,
     Map<String, dynamic>? data,
-<<<<<<< HEAD
     required List<QueryDocumentSnapshot> allServices,
-=======
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
   }) {
     final nameCtrl = TextEditingController(text: data?['name']);
     final dogBaseCtrl = TextEditingController(
@@ -863,14 +899,20 @@ class _ServicesManagement extends StatelessWidget {
     };
 
     final singleOptions = allServices
-        .where((doc) => (doc.data() as Map<String, dynamic>)['kind']?.toString() != 'combo')
-        .map((doc) => (doc.data() as Map<String, dynamic>)['name']?.toString() ?? '')
+        .where(
+          (doc) =>
+              (doc.data() as Map<String, dynamic>)['kind']?.toString() !=
+              'combo',
+        )
+        .map(
+          (doc) =>
+              (doc.data() as Map<String, dynamic>)['name']?.toString() ?? '',
+        )
         .where((name) => name.isNotEmpty)
         .toList();
 
     showDialog(
       context: context,
-<<<<<<< HEAD
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(docId == null ? 'Thêm dịch vụ' : 'Sửa dịch vụ'),
@@ -890,7 +932,10 @@ class _ServicesManagement extends StatelessWidget {
                     DropdownButton<String>(
                       value: kind,
                       items: const [
-                        DropdownMenuItem(value: 'single', child: Text('Dịch vụ lẻ')),
+                        DropdownMenuItem(
+                          value: 'single',
+                          child: Text('Dịch vụ lẻ'),
+                        ),
                         DropdownMenuItem(value: 'combo', child: Text('Combo')),
                       ],
                       onChanged: (v) {
@@ -906,12 +951,16 @@ class _ServicesManagement extends StatelessWidget {
                 if (kind == 'single') ...[
                   TextField(
                     controller: dogBaseCtrl,
-                    decoration: const InputDecoration(labelText: 'Giá cho chó (số nguyên)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Giá cho chó (số nguyên)',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   TextField(
                     controller: catBaseCtrl,
-                    decoration: const InputDecoration(labelText: 'Giá cho mèo (số nguyên)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Giá cho mèo (số nguyên)',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ] else ...[
@@ -951,33 +1000,6 @@ class _ServicesManagement extends StatelessWidget {
                 ],
               ],
             ),
-=======
-      builder: (context) => AlertDialog(
-        title: Text(docId == null ? 'Thêm dịch vụ' : 'Sửa dịch vụ'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Tên dịch vụ'),
-              ),
-              TextField(
-                controller: dogBaseCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Giá cho chó (số nguyên)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: catBaseCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Giá cho mèo (số nguyên)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
           ),
           actions: [
             TextButton(
@@ -988,7 +1010,9 @@ class _ServicesManagement extends StatelessWidget {
               onPressed: () async {
                 if (kind == 'combo' && selectedItems.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Hãy chọn ít nhất 1 dịch vụ lẻ cho combo')),
+                    const SnackBar(
+                      content: Text('Hãy chọn ít nhất 1 dịch vụ lẻ cho combo'),
+                    ),
                   );
                   return;
                 }
@@ -1002,70 +1026,37 @@ class _ServicesManagement extends StatelessWidget {
                   'dogBase': kind == 'single' ? dogBase : 0,
                   'catBase': kind == 'single' ? catBase : 0,
                   'isActive': true,
-                  'itemsRaw': kind == 'combo' ? selectedItems.toList() : <String>[],
-                  'itemsResolved': kind == 'combo' ? selectedItems.toList() : <String>[],
+                  'itemsRaw': kind == 'combo'
+                      ? selectedItems.toList()
+                      : <String>[],
+                  'itemsResolved': kind == 'combo'
+                      ? selectedItems.toList()
+                      : <String>[],
                 };
 
                 if (docId == null) {
                   await firestore.collection('services').add(serviceData);
                 } else {
-                  await firestore.collection('services').doc(docId).update(serviceData);
+                  await firestore
+                      .collection('services')
+                      .doc(docId)
+                      .update(serviceData);
                 }
 
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(docId == null ? 'Đã thêm dịch vụ' : 'Đã cập nhật dịch vụ')),
+                  SnackBar(
+                    content: Text(
+                      docId == null ? 'Đã thêm dịch vụ' : 'Đã cập nhật dịch vụ',
+                    ),
+                  ),
                 );
               },
               child: const Text('Lưu'),
             ),
           ],
         ),
-<<<<<<< HEAD
-=======
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final dogBase = int.tryParse(dogBaseCtrl.text) ?? 0;
-              final catBase = int.tryParse(catBaseCtrl.text) ?? 0;
-              final serviceData = {
-                'name': nameCtrl.text,
-                'kind': 'single',
-                'dogBase': dogBase,
-                'catBase': catBase,
-                'isActive': true,
-                'itemsRaw': [],
-                'itemsResolved': [],
-              };
-
-              if (docId == null) {
-                await firestore.collection('services').add(serviceData);
-              } else {
-                await firestore
-                    .collection('services')
-                    .doc(docId)
-                    .update(serviceData);
-              }
-
-              if (!context.mounted) return;
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    docId == null ? 'Đã thêm dịch vụ' : 'Đã cập nhật dịch vụ',
-                  ),
-                ),
-              );
-            },
-            child: const Text('Lưu'),
-          ),
-        ],
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
       ),
     );
   }
@@ -1111,14 +1102,7 @@ class _PurchaseHistoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-<<<<<<< HEAD
       stream: firestore.collection('usercardhistory').snapshots(),
-=======
-      stream: firestore
-          .collection('usercardhistory')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Lỗi: ${snapshot.error}'));
@@ -1132,8 +1116,10 @@ class _PurchaseHistoryView extends StatelessWidget {
 
         // Sort newest first (avoid Firestore index issues)
         purchases.sort((a, b) {
-          final ta = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-          final tb = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+          final ta =
+              (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+          final tb =
+              (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
           if (ta == null && tb == null) return 0;
           if (ta == null) return 1;
           if (tb == null) return -1;
@@ -1155,7 +1141,10 @@ class _PurchaseHistoryView extends StatelessWidget {
             final timestamp = data['timestamp'] as Timestamp?;
             final date = timestamp?.toDate();
             final userId = data['userId'] as String? ?? 'Unknown';
-            final userProfileFuture = firestore.collection('userdata').doc(userId).get();
+            final userProfileFuture = firestore
+                .collection('userdata')
+                .doc(userId)
+                .get();
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
@@ -1170,7 +1159,8 @@ class _PurchaseHistoryView extends StatelessWidget {
                   builder: (context, userSnap) {
                     final profile = userSnap.data?.data();
                     final displayName = profile?['name']?.toString() ?? 'User';
-                    final address = profile?['address']?.toString() ?? 'Không có địa chỉ';
+                    final address =
+                        profile?['address']?.toString() ?? 'Không có địa chỉ';
                     final phone = profile?['phone']?.toString();
 
                     return Column(
@@ -1178,13 +1168,25 @@ class _PurchaseHistoryView extends StatelessWidget {
                       children: [
                         Text(
                           'User: $displayName (${userId.substring(0, userId.length > 8 ? 8 : userId.length)}...)',
-                          style: const TextStyle(fontSize: 12, color: Colors.black87),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
                         ),
                         if (phone != null && phone.isNotEmpty)
-                          Text('SĐT: $phone', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(
+                            'SĐT: $phone',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
                         Text(
                           'Địa chỉ: $address',
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
                         ),
                         Text(
                           'Ngày: ${date != null ? "${date.day}/${date.month}/${date.year}" : "N/A"}\n'
@@ -1685,13 +1687,7 @@ class _ServiceBookingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: firestore
-          .collection('service_bookings')
-<<<<<<< HEAD
-=======
-          .orderBy('date', descending: true)
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
-          .snapshots(),
+      stream: firestore.collection('service_bookings').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -1705,8 +1701,10 @@ class _ServiceBookingsView extends StatelessWidget {
 
         // Sort newest first (avoid Firestore composite index requirements)
         bookings.sort((a, b) {
-          final ta = (a.data() as Map<String, dynamic>)['bookingDate'] as Timestamp?;
-          final tb = (b.data() as Map<String, dynamic>)['bookingDate'] as Timestamp?;
+          final ta =
+              (a.data() as Map<String, dynamic>)['bookingDate'] as Timestamp?;
+          final tb =
+              (b.data() as Map<String, dynamic>)['bookingDate'] as Timestamp?;
           if (ta == null && tb == null) return 0;
           if (ta == null) return 1;
           if (tb == null) return -1;
@@ -1736,23 +1734,29 @@ class _ServiceBookingsView extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-<<<<<<< HEAD
             // Normalize fields to avoid N/A display
-            final dateTs = data['bookingDate'] as Timestamp? ?? data['date'] as Timestamp?;
+            final dateTs =
+                data['bookingDate'] as Timestamp? ?? data['date'] as Timestamp?;
             final dateOnly = dateTs?.toDate();
             final timeMinutes = (data['timeMinutes'] as num?)?.toInt();
             final startAt = (dateOnly != null && timeMinutes != null)
-              ? DateTime(dateOnly.year, dateOnly.month, dateOnly.day, timeMinutes ~/ 60, timeMinutes % 60)
-              : dateOnly;
+                ? DateTime(
+                    dateOnly.year,
+                    dateOnly.month,
+                    dateOnly.day,
+                    timeMinutes ~/ 60,
+                    timeMinutes % 60,
+                  )
+                : dateOnly;
 
             final serviceTitle = data['serviceTitle']?.toString() ?? '';
             final serviceItems = ((data['serviceItems'] as List?) ?? const [])
-              .map((e) => e.toString())
-              .where((e) => e.isNotEmpty)
-              .toList();
+                .map((e) => e.toString())
+                .where((e) => e.isNotEmpty)
+                .toList();
             final displayService = serviceTitle.isNotEmpty
-              ? serviceTitle
-              : serviceItems.isNotEmpty
+                ? serviceTitle
+                : serviceItems.isNotEmpty
                 ? serviceItems.join(', ')
                 : 'Chưa chọn dịch vụ';
 
@@ -1766,23 +1770,13 @@ class _ServiceBookingsView extends StatelessWidget {
             final weight = data['weight']?.toString();
             final price = (data['price'] as num?)?.toInt() ?? 0;
             final status = (data['status']?.toString().isNotEmpty ?? false)
-              ? data['status'].toString()
-              : 'Chờ xác nhận';
+                ? data['status'].toString()
+                : 'Chờ xác nhận';
             final notes = data['notes']?.toString() ?? '';
 
             final userProfileFuture = userId != null && userId.isNotEmpty
-              ? firestore.collection('userdata').doc(userId).get()
-              : null;
-=======
-            final bookingDate = (data['date'] as Timestamp?)?.toDate();
-            final serviceName = data['serviceTitle'] ?? 'N/A';
-            final userName = data['customerName'] ?? 'N/A';
-            final userEmail = data['userEmail'] ?? 'N/A';
-            final petType = data['petName'] ?? 'N/A';
-            final price = data['price'] as int? ?? 0;
-            final status = data['status'] ?? 'Chờ xác nhận';
-            final notes = data['notes'] ?? '';
->>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
+                ? firestore.collection('userdata').doc(userId).get()
+                : null;
 
             final statusColor = status == 'Hoàn thành'
                 ? Colors.green
@@ -1837,31 +1831,47 @@ class _ServiceBookingsView extends StatelessWidget {
                         future: userProfileFuture,
                         builder: (context, snap) {
                           final profile = snap.data?.data();
-                          final displayName = (customerName?.trim().isNotEmpty ?? false)
+                          final displayName =
+                              (customerName?.trim().isNotEmpty ?? false)
                               ? customerName!.trim()
                               : (userName?.trim().isNotEmpty ?? false)
-                                  ? userName!.trim()
-                                  : (profile?['name']?.toString().trim().isNotEmpty ?? false)
-                                      ? profile!['name'].toString().trim()
-                                      : 'Khách';
+                              ? userName!.trim()
+                              : (profile?['name']
+                                        ?.toString()
+                                        .trim()
+                                        .isNotEmpty ??
+                                    false)
+                              ? profile!['name'].toString().trim()
+                              : 'Khách';
                           final email = (userEmail?.trim().isNotEmpty ?? false)
                               ? userEmail!.trim()
                               : (profile?['email']?.toString() ?? '').trim();
-                          final phone = (profile?['phone']?.toString().trim().isNotEmpty ?? false)
+                          final phone =
+                              (profile?['phone']
+                                      ?.toString()
+                                      .trim()
+                                      .isNotEmpty ??
+                                  false)
                               ? profile!['phone'].toString().trim()
                               : (phoneFromBooking?.trim().isNotEmpty ?? false)
-                                  ? phoneFromBooking!.trim()
-                                  : null;
+                              ? phoneFromBooking!.trim()
+                              : null;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.person, size: 16, color: Colors.grey[600]),
+                                  Icon(
+                                    Icons.person,
+                                    size: 16,
+                                    color: Colors.grey[600],
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      email.isNotEmpty ? '$displayName ($email)' : displayName,
+                                      email.isNotEmpty
+                                          ? '$displayName ($email)'
+                                          : displayName,
                                       style: TextStyle(color: Colors.grey[700]),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -1872,7 +1882,13 @@ class _ServiceBookingsView extends StatelessWidget {
                               if (phone != null && phone.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
-                                  child: Text('SĐT: $phone', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                  child: Text(
+                                    'SĐT: $phone',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                             ],
                           );
@@ -1888,8 +1904,8 @@ class _ServiceBookingsView extends StatelessWidget {
                               (customerName?.trim().isNotEmpty ?? false)
                                   ? customerName!.trim()
                                   : (userName?.trim().isNotEmpty ?? false)
-                                      ? userName!.trim()
-                                      : 'Khách',
+                                  ? userName!.trim()
+                                  : 'Khách',
                               style: TextStyle(color: Colors.grey[700]),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
