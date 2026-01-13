@@ -21,6 +21,7 @@ dependencies:
   google_sign_in: ^6.2.1
   vn_payment_gen: ^0.0.4
   intl: ^0.20.2
+  momo_payment_flutter: ^1.0.2
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:momo_payment_flutter/momo_payment_flutter.dart';
+
 import 'cart_service.dart';
 import 'purchase_history_service.dart';
 
@@ -10,39 +12,92 @@ class CheckoutPage extends StatefulWidget {
   State<CheckoutPage> createState() => _CheckoutPageState();
 }
 
-class _CheckoutPageState extends State<CheckoutPage> {
-  String _selectedPaymentMethod = 'qrcode'; // 'qrcode' or 'bank'
-  late List<Map<String, dynamic>> _items;
-  late int _total;
+class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver {
+  List<Map<String, dynamic>> _items = <Map<String, dynamic>>[];
+  int _total = 0;
+  bool _loadedArgs = false;
+
+  // ===== MoMo config =====
+  // phải KHỚP AndroidManifest intent-filter + iOS Info.plist
+  static const String kRedirectUrl = 'momopayment://return';
+
+  // IPN phải là URL public (backend). Demo có thể để tạm.
+  static const String kIpnUrl = 'https://your-public-server.com/momo/ipn';
+
+  // TODO: thay bằng thông tin MoMo của cậu (sandbox/prod)
+  static const String kPartnerCode = 'MOMO';
+  static const String kAccessKey = 'F8BBA842ECF85';
+  static const String kSecretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+  static const bool kIsTestMode = true;
+
+  late final MomoPayment _momo;
+  String? _orderId;
+  String? _requestId;
+  bool _momoBusy = false;
 
   @override
-  Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final List<Map<String, dynamic>> items;
-    final int total;
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
+    _momo = MomoPayment(
+      partnerCode: kPartnerCode,
+      accessKey: kAccessKey,
+      secretKey: kSecretKey,
+      isTestMode: kIsTestMode,
+      isDebug: false,
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Lấy args 1 lần (đúng chuẩn)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loadedArgs) return;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic>) {
       final rawItems = args['items'];
       final rawTotal = args['total'];
-      items = (rawItems is List)
+
+      _items = (rawItems is List)
           ? rawItems
               .whereType<Map<String, dynamic>>()
               .map((e) => Map<String, dynamic>.from(e))
               .toList()
           : <Map<String, dynamic>>[];
-      total = rawTotal is int ? rawTotal : 0;
+
+      _total = rawTotal is int ? rawTotal : 0;
     } else {
-      items = const [];
-      total = 0;
+      _items = <Map<String, dynamic>>[];
+      _total = 0;
     }
 
-    // Lưu vào state để sử dụng trong xử lý thanh toán
-    _items = items;
-    _total = total;
+    _loadedArgs = true;
+  }
+
+  // Khi quay lại app từ MoMo/browser → checkStatus
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkMomoStatus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _items;
+    final total = _total;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Xác nhận thanh toán'),
+        title: const Text('Thanh toán MoMo'),
       ),
       body: items.isEmpty
           ? const Center(child: Text('Không có sản phẩm được chọn'))
@@ -56,9 +111,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     itemBuilder: (context, index) {
                       final item = items[index];
                       final name = (item['name'] ?? '').toString();
-                      final price = item['price'] as int? ?? 0;
+
+                      final dynamic rawPrice = item['price'];
+                      final int price = rawPrice is int
+                          ? rawPrice
+                          : int.tryParse(rawPrice?.toString() ?? '') ?? 0;
+
                       final qty = item['quantity'] as int? ?? 1;
                       final img = (item['image'] ?? '').toString();
+
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -127,102 +188,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     },
                   ),
                 ),
-                // Payment method selection
+
+                // Footer tổng tiền + nút MoMo
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.grey[100],
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Phương thức thanh toán',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedPaymentMethod = 'qrcode'),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _selectedPaymentMethod == 'qrcode'
-                                        ? const Color(0xFF1E90FF)
-                                        : Colors.grey[300]!,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: _selectedPaymentMethod == 'qrcode'
-                                      ? const Color(0xFF1E90FF).withOpacity(0.1)
-                                      : Colors.transparent,
-                                ),
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.qr_code_2, size: 28),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'QR Code',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: _selectedPaymentMethod == 'qrcode'
-                                            ? const Color(0xFF1E90FF)
-                                            : Colors.grey[700],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedPaymentMethod = 'bank'),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _selectedPaymentMethod == 'bank'
-                                        ? const Color(0xFF1E90FF)
-                                        : Colors.grey[300]!,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: _selectedPaymentMethod == 'bank'
-                                      ? const Color(0xFF1E90FF).withOpacity(0.1)
-                                      : Colors.transparent,
-                                ),
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.account_balance, size: 28),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Ngân hàng',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: _selectedPaymentMethod == 'bank'
-                                            ? const Color(0xFF1E90FF)
-                                            : Colors.grey[700],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
@@ -241,10 +210,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         children: [
                           const Text(
                             'Tổng thanh toán',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                           ),
                           Text(
                             _formatPrice(total),
@@ -257,22 +223,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => _handlePayment(context, total),
+                      ElevatedButton.icon(
+                        onPressed: _momoBusy ? null : () => _startMomoPayment(total),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E90FF),
+                          backgroundColor: const Color(0xFFB0006D), // màu MoMo “na ná”
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Xác nhận thanh toán',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        icon: _momoBusy
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.account_balance_wallet_outlined),
+                        label: Text(
+                          _momoBusy ? 'Đang chuyển sang MoMo...' : 'Thanh toán bằng MoMo',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ],
@@ -283,251 +256,109 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  void _handlePayment(BuildContext context, int amount) {
-    if (_selectedPaymentMethod == 'qrcode') {
-      _showQRPayment(context, amount);
-    } else {
-      _showBankPayment(context, amount);
-    }
-  }
+  // =================== MoMo ===================
 
-  void _showQRPayment(BuildContext context, int amount) {
-    try {
-      // Tạo dữ liệu QR code cho thanh toán
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Quét mã QR để thanh toán',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Hiển thị QR code
-                  Container(
-                    width: 250,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.qr_code_2, size: 80),
-                          const SizedBox(height: 16),
-                          Text(
-                            _formatPrice(amount),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Thông tin thanh toán:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _bankInfoRow('Ngân hàng', 'Vietcombank'),
-                        const SizedBox(height: 8),
-                        _bankInfoRow('Số tài khoản', '1234567890'),
-                        const SizedBox(height: 8),
-                        _bankInfoRow('Số tiền', _formatPrice(amount)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Hủy'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Save to purchase history
-                          PurchaseHistoryService.instance.addPurchase(
-                            items: _items,
-                            totalAmount: _total,
-                            paymentMethod: 'QR Code',
-                          );
-
-                          // Clear cart
-                          CartService.instance.clear();
-
-                          // Close dialog and show success
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Thanh toán QR thành công!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-
-                          // Navigate back to home
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E90FF),
-                        ),
-                        child: const Text(
-                          'Xác nhận thanh toán',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    } catch (e) {
+  Future<void> _startMomoPayment(int amount) async {
+    if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
+        const SnackBar(content: Text('Số tiền không hợp lệ')),
+      );
+      return;
+    }
+
+    try {
+      setState(() => _momoBusy = true);
+
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      _orderId = 'ORDER_$ts';
+      _requestId = 'REQ_$ts';
+
+      final info = MomoPaymentInfo(
+        orderId: _orderId!,
+        requestId: _requestId!,
+        orderInfo: 'Thanh toán đơn hàng #$_orderId',
+        amount: amount,
+        redirectUrl: kRedirectUrl,
+        ipnUrl: kIpnUrl,
+        requestType: 'captureWallet',
+        lang: 'vi',
+      );
+
+      final res = await _momo.createPayment(info);
+
+      if (!mounted) return;
+
+      if (res.payUrl == null) {
+        _orderId = null;
+        _requestId = null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không có payUrl: ${res.message ?? ''}')),
+        );
+        return;
+      }
+
+      await _momo.openPaymentPage(res.payUrl!);
+    } catch (e) {
+      _orderId = null;
+      _requestId = null;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi MoMo: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _momoBusy = false);
+    }
+  }
+
+  Future<void> _checkMomoStatus() async {
+    if (_orderId == null || _requestId == null) return;
+
+    try {
+      final res = await _momo.checkStatus(orderId: _orderId!, requestId: _requestId!);
+
+      if (!mounted) return;
+
+      if (res.resultCode == 0) {
+        _orderId = null;
+        _requestId = null;
+        _finalizeSuccess();
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('MoMo: ${res.message ?? 'Chưa thành công'} (code ${res.resultCode})')),
+      );
+
+      // xoá để tránh check lại hoài
+      _orderId = null;
+      _requestId = null;
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi checkStatus: $e')),
       );
     }
   }
 
-  void _showBankPayment(BuildContext context, int amount) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Thông tin chuyển khoản',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _bankInfoRow('Ngân hàng', 'Vietcombank'),
-                      const SizedBox(height: 12),
-                      _bankInfoRow('Số tài khoản', '1234567890'),
-                      const SizedBox(height: 12),
-                      _bankInfoRow('Tên tài khoản', 'Shop Thú Cưng'),
-                      const SizedBox(height: 12),
-                      _bankInfoRow('Số tiền', _formatPrice(amount)),
-                      const SizedBox(height: 12),
-                      _bankInfoRow('Nội dung', 'Thanh toán hóa đơn'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Hủy'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Save to purchase history
-                        PurchaseHistoryService.instance.addPurchase(
-                        items: _items,
-                        totalAmount: _total,
-                        paymentMethod: 'Chuyển khoản',
-                      );
+  void _finalizeSuccess() {
+    PurchaseHistoryService.instance.addPurchase(
+      items: _items,
+      totalAmount: _total,
+      paymentMethod: 'MoMo',
+    );
 
-                      // Clear cart
-                      CartService.instance.clear();
+    CartService.instance.clear();
 
-                      // Close dialog and show success
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Thanh toán chuyển khoản thành công!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+    if (!mounted) return;
 
-                      // Navigate back to home
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E90FF),
-                    ),
-                    child: const Text(
-                      'Xác nhận',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            ),
-          ),
-        ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Thanh toán MoMo thành công!'),
+        backgroundColor: Colors.green,
       ),
     );
-  }
 
-  Widget _bankInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            color: Colors.grey,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
+    Navigator.pop(context);
   }
 
   String _formatPrice(int price) {
