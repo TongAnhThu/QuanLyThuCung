@@ -45,5 +45,23 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleTypeRole</key>
+    <string>Editor</string>
+    <key>CFBundleURLName</key>
+    <string>momo_payment</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <!-- Thay thế "momopayment" bằng scheme bạn đã đăng ký với MoMo -->
+      <string>momopayment</string>
+    </array>
+  </dict>
+</array>
+<key>LSApplicationQueriesSchemes</key>
+<array>
+  <string>momo</string>
+</array>
 </dict>
 </plist>
