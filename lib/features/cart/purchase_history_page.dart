@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'purchase_history_service.dart';
 
 class PurchaseHistoryPage extends StatefulWidget {
@@ -14,16 +15,27 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final history = _historyService.getPurchaseHistory();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lịch sử mua hàng'),
         backgroundColor: const Color(0xFF1E90FF),
         foregroundColor: Colors.white,
       ),
-      body: history.isEmpty
-          ? Center(
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _historyService.getUserPurchaseHistory(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Lỗi: ${snapshot.error}'));
+          }
+
+          final history = snapshot.data ?? [];
+
+          if (history.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -42,69 +54,74 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                   ),
                 ],
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: history.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final purchase = history[index];
-                final items = purchase['items'] as List<Map<String, dynamic>>;
-                final totalAmount = purchase['totalAmount'] as int;
-                final paymentMethod = purchase['paymentMethod'] as String;
-                final timestamp = purchase['timestamp'] as DateTime;
-                final purchaseId = purchase['id'] as int;
+            );
+          }
 
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Đơn hàng #${purchaseId.toString().substring(purchaseId.toString().length - 6)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E90FF),
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: history.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final purchase = history[index];
+              final items = (purchase['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+              final totalAmount = purchase['totalAmount'] as int? ?? 0;
+              final paymentMethod = purchase['paymentMethod'] as String? ?? '';
+              final timestamp = purchase['timestamp'] as Timestamp?;
+              final purchaseId = purchase['id'] as String;
+              final dateTime = timestamp?.toDate();
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Đơn hàng #${purchaseId.substring(purchaseId.length > 6 ? purchaseId.length - 6 : 0)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1E90FF),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green[100],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Hoàn thành',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green[100],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'Hoàn thành',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                       Text(
-                        'Ngày: ${timestamp.day}/${timestamp.month}/${timestamp.year} ${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}',
+                        dateTime != null
+                            ? 'Ngày: ${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}'
+                            : 'Ngày: N/A',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -192,16 +209,26 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                                     child: const Text('Hủy'),
                                   ),
                                   TextButton(
-                                    onPressed: () {
-                                      _historyService.removePurchase(purchaseId);
+                                    onPressed: () async {
                                       Navigator.pop(context);
-                                      setState(() {});
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Đã xóa đơn hàng'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
+                                      try {
+                                        await _historyService.removePurchase(purchaseId);
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Đã xóa đơn hàng'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Lỗi: ${e.toString()}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
                                     },
                                     child: const Text('Xóa'),
                                   ),
@@ -219,8 +246,10 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                     ],
                   ),
                 );
-              },
-            ),
+            },
+          );
+        },
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../theme/app_theme.dart';
 import '../widgets/auth_card.dart';
@@ -232,6 +233,47 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
+      // Kiểm tra admin credentials
+      if (_usernameCtrl.text.trim() == 'admin' && _passwordCtrl.text == '1') {
+        // Đăng nhập với tài khoản đặc biệt cho admin
+        // Tạo một email giả để Firebase chấp nhận
+        final adminEmail = 'admin@petshop.com';
+        final adminPassword = 'admin123456';
+
+        UserCredential? credential;
+        try {
+          // Thử đăng nhập với tài khoản admin
+          credential = await _authService.signInWithEmailPassword(
+            email: adminEmail,
+            password: adminPassword,
+          );
+        } catch (e) {
+          // Nếu chưa có tài khoản, tạo mới
+          credential = await _authService.registerWithEmailPassword(
+            email: adminEmail,
+            password: adminPassword,
+            displayName: 'Administrator',
+          );
+          
+          // Tạo profile admin
+          if (credential?.user != null) {
+            await _userService.createUserProfile(
+              uid: credential!.user!.uid,
+              email: adminEmail,
+              displayName: 'Administrator',
+              isAdmin: true,
+            );
+          }
+        }
+
+        if (!mounted) return;
+        
+        // Chuyển sang trang admin
+        Navigator.pushReplacementNamed(context, '/admin');
+        return;
+      }
+
+      // Đăng nhập bình thường
       final credential = await _authService.signInWithEmailPassword(
         email: _usernameCtrl.text.trim(),
         password: _passwordCtrl.text,

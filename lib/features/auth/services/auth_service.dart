@@ -3,7 +3,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '310674472470-qh6agqnj4jcib7d36lkkjuh693c9kj2b.apps.googleusercontent.com',
+  );
 
   // Lấy user hiện tại
   User? get currentUser => _auth.currentUser;

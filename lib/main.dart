@@ -1,5 +1,4 @@
 import 'package:appshopbanthucung/features/services/data.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -24,6 +23,7 @@ import 'features/posts/post_detail_page.dart';
 import 'features/items/item_detail_page.dart';
 
 import 'features/services/user_my_bookings_page.dart';
+import 'features/admin/admin_page.dart';
 
 import 'Profile/ProfilePage.dart';
 import 'Profile/EditProfile.dart';
@@ -116,6 +116,7 @@ class MyApp extends StatelessWidget {
         EditProfilePage.routeName: (_) => const EditProfilePage(),
         UserServiceBookingsPage.routeName: (_) =>
             const UserServiceBookingsPage(),
+        AdminPage.routeName: (_) => const AdminPage(),
       },
     );
   }

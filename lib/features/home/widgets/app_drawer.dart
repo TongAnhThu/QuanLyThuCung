@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/user_my_bookings_page.dart'; // hoặc page route của cậu
 
@@ -8,6 +9,8 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -86,6 +89,46 @@ class AppDrawer extends StatelessWidget {
               Navigator.pushNamed(context, UserServiceBookingsPage.routeName);
             },
           ),
+          
+          // ✅ Menu Admin - chỉ hiện khi user là admin
+          if (currentUser != null)
+            FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('userdata')
+                  .doc(currentUser.uid)
+                  .get(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data?.exists == true) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>?;
+                  final isAdmin = data?['isAdmin'] == true;
+                  
+                  if (isAdmin) {
+                    return Column(
+                      children: [
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.admin_panel_settings, color: Color(0xFF1E90FF)),
+                          title: const Text(
+                            'Quản trị hệ thống',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E90FF),
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(context, '/admin');
+                          },
+                        ),
+                        const Divider(height: 1),
+                      ],
+                    );
+                  }
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About us'),

@@ -10,20 +10,26 @@ class UserService {
     required String uid,
     required String email,
     required String displayName,
+    bool isAdmin = false,
   }) async {
     try {
       final userProfile = UserProfile(
         uid: uid,
         email: email,
         displayName: displayName,
-        isProfileComplete: false, // Chưa hoàn thành profile
+        isProfileComplete: isAdmin ? true : false, // Admin tự động hoàn thành
         createdAt: DateTime.now(),
       );
+
+      final data = userProfile.toFirestore();
+      if (isAdmin) {
+        data['isAdmin'] = true;
+      }
 
       await _firestore
           .collection(_usersCollection)
           .doc(uid)
-          .set(userProfile.toFirestore());
+          .set(data);
     } catch (e) {
       throw 'Không thể tạo hồ sơ người dùng: $e';
     }
