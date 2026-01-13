@@ -8,7 +8,6 @@ class PurchaseHistoryService {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  // Thêm mua hàng vào Firestore
   Future<void> addPurchase({
     required List<Map<String, dynamic>> items,
     required int totalAmount,
@@ -49,7 +48,7 @@ class PurchaseHistoryService {
         if (ta == null && tb == null) return 0;
         if (ta == null) return 1;
         if (tb == null) return -1;
-        return tb.compareTo(ta); // newest first
+        return tb.compareTo(ta); 
       });
 
       return list;

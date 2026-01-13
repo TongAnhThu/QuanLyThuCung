@@ -17,14 +17,10 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
   int _total = 0;
   bool _loadedArgs = false;
 
-  // ===== MoMo config =====
-  // phải KHỚP AndroidManifest intent-filter + iOS Info.plist
   static const String kRedirectUrl = 'momopayment://return';
 
-  // IPN phải là URL public (backend). Demo có thể để tạm.
   static const String kIpnUrl = 'https://your-public-server.com/momo/ipn';
 
-  // TODO: thay bằng thông tin MoMo của cậu (sandbox/prod)
   static const String kPartnerCode = 'MOMO';
   static const String kAccessKey = 'F8BBA842ECF85';
   static const String kSecretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
@@ -55,7 +51,6 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
     super.dispose();
   }
 
-  // Lấy args 1 lần (đúng chuẩn)
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -82,7 +77,6 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
     _loadedArgs = true;
   }
 
-  // Khi quay lại app từ MoMo/browser → checkStatus
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -189,7 +183,6 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
                   ),
                 ),
 
-                // Footer tổng tiền + nút MoMo
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   decoration: BoxDecoration(
@@ -226,7 +219,7 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
                       ElevatedButton.icon(
                         onPressed: _momoBusy ? null : () => _startMomoPayment(total),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB0006D), // màu MoMo “na ná”
+                          backgroundColor: const Color(0xFFB0006D), 
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -256,7 +249,6 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
     );
   }
 
-  // =================== MoMo ===================
 
   Future<void> _startMomoPayment(int amount) async {
     if (amount <= 0) {
@@ -329,7 +321,6 @@ class _CheckoutPageState extends State<CheckoutPage> with WidgetsBindingObserver
         SnackBar(content: Text('MoMo: ${res.message ?? 'Chưa thành công'} (code ${res.resultCode})')),
       );
 
-      // xoá để tránh check lại hoài
       _orderId = null;
       _requestId = null;
     } catch (e) {

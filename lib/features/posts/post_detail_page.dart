@@ -43,7 +43,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return '$dd/$mm/$yyyy • $hh:$min';
   }
 
-  // Optional: làm content dễ đọc hơn (tách "1) 2)" thành đoạn)
   String _prettyContent(String s) {
     final t = s.replaceAll('\r\n', '\n').trim();
     return t.replaceAllMapped(RegExp(r'\s*(\d+\))\s*'), (m) {
@@ -82,7 +81,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   Widget _buildPostImage(BuildContext context, String? imagePathOrUrl, {double radius = 16}) {
     final src = (imagePathOrUrl ?? '').trim();
-    if (src.isEmpty) return const SizedBox.shrink(); // ✅ không có ảnh => ẩn luôn
+    if (src.isEmpty) return const SizedBox.shrink(); 
 
     final isNetwork = src.startsWith('http://') || src.startsWith('https://');
     final w = MediaQuery.of(context).size.width;
@@ -175,7 +174,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         final timeText = _fmt(post.createdAt);
         final source = post.sourceName.trim().isEmpty ? 'Nguồn: (chưa có)' : post.sourceName;
         final content = _prettyContent(post.content);
-        final image = post.image; // ✅ đã có field image (null hoặc string)
+        final image = post.image; 
 
         return Scaffold(
           backgroundColor: kPageBg,
@@ -198,7 +197,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ CARD CHÍNH: title -> meta -> (khoảng trống) -> image -> (khoảng trống) -> content
+              
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -232,7 +231,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
                           const SizedBox(height: 10),
 
-                          // ✅ meta: thời gian + nguồn
+                      
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
@@ -242,13 +241,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             ],
                           ),
 
-                          // ✅ khoảng trống giữa tiêu đề/meta và ảnh
+                          
                           const SizedBox(height: 16),
 
-                          // ✅ ảnh dưới tiêu đề (tuỳ bài có/không)
+                         
                           _buildPostImage(context, image, radius: 16),
 
-                          // ✅ khoảng trống giữa ảnh và content (đúng ý cậu)
+                          
                           if ((image ?? '').trim().isNotEmpty) const SizedBox(height: 16),
 
                           Text(
@@ -268,7 +267,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
                 const SizedBox(height: 12),
 
-                // ✅ card “nguồn” gọn
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
