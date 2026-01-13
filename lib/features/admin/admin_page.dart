@@ -10,7 +10,8 @@ class AdminPage extends StatefulWidget {
   State<AdminPage> createState() => _AdminPageState();
 }
 
-class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixin {
+class _AdminPageState extends State<AdminPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _firestore = FirebaseFirestore.instance;
 
@@ -84,8 +85,13 @@ class _PetsManagement extends StatelessWidget {
     final priceInt = (price is int)
         ? price
         : (price is double)
+<<<<<<< HEAD
             ? price.toInt()
             : int.tryParse(price?.toString() ?? '0') ?? 0;
+=======
+        ? price.toInt()
+        : int.tryParse(price?.toString() ?? '0') ?? 0;
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
     final text = priceInt.toString();
     final buf = StringBuffer();
     for (int i = 0; i < text.length; i++) {
@@ -152,7 +158,8 @@ class _PetsManagement extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         (data['name']?.toString().isNotEmpty ?? false)
@@ -168,7 +175,13 @@ class _PetsManagement extends StatelessWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         _formatPetPrice(data['price']),
+<<<<<<< HEAD
                                         style: TextStyle(color: Colors.grey[600]),
+=======
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                       ),
                                       Text(
                                         'Loại: ${data['type'] == 'cat' ? 'Mèo' : 'Chó'}',
@@ -176,18 +189,33 @@ class _PetsManagement extends StatelessWidget {
                                       ),
                                       Text(
                                         'Tuổi: ${data['age'] ?? 'N/A'}',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showPetDialog(context, firestore, docId: doc.id, data: data),
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () => _showPetDialog(
+                                    context,
+                                    firestore,
+                                    docId: doc.id,
+                                    data: data,
+                                  ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deletePet(context, firestore, doc.id),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () =>
+                                      _deletePet(context, firestore, doc.id),
                                 ),
                               ],
                             ),
@@ -202,9 +230,20 @@ class _PetsManagement extends StatelessWidget {
     );
   }
 
-  static void _showPetDialog(BuildContext context, FirebaseFirestore firestore, {String? docId, Map<String, dynamic>? data}) {
+  static void _showPetDialog(
+    BuildContext context,
+    FirebaseFirestore firestore, {
+    String? docId,
+    Map<String, dynamic>? data,
+  }) {
     final nameCtrl = TextEditingController(text: data?['name']);
+<<<<<<< HEAD
     final priceCtrl = TextEditingController(text: data?['price']?.toString() ?? '');
+=======
+    final priceCtrl = TextEditingController(
+      text: data?['price']?.toString() ?? '',
+    );
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
     final ageCtrl = TextEditingController(text: data?['age']?.toString() ?? '');
     final imageCtrl = TextEditingController(text: data?['image']);
     String petType = data?['type']?.toString() ?? 'dog';
@@ -289,7 +328,11 @@ class _PetsManagement extends StatelessWidget {
               if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(docId == null ? 'Đã thêm thú cưng' : 'Đã cập nhật thú cưng')),
+                SnackBar(
+                  content: Text(
+                    docId == null ? 'Đã thêm thú cưng' : 'Đã cập nhật thú cưng',
+                  ),
+                ),
               );
             },
             child: const Text('Lưu'),
@@ -299,7 +342,11 @@ class _PetsManagement extends StatelessWidget {
     );
   }
 
-  static void _deletePet(BuildContext context, FirebaseFirestore firestore, String docId) {
+  static void _deletePet(
+    BuildContext context,
+    FirebaseFirestore firestore,
+    String docId,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -316,9 +363,9 @@ class _PetsManagement extends StatelessWidget {
               await firestore.collection('pets').doc(docId).delete();
               if (!context.mounted) return;
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xóa thú cưng')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Đã xóa thú cưng')));
             },
             child: const Text('Xóa'),
           ),
@@ -334,7 +381,11 @@ class _ProductsManagement extends StatelessWidget {
   const _ProductsManagement({required this.firestore});
 
   String _formatProductPrice(dynamic price) {
-    final priceInt = (price is int) ? price : (price is double) ? price.toInt() : int.tryParse(price?.toString() ?? '0') ?? 0;
+    final priceInt = (price is int)
+        ? price
+        : (price is double)
+        ? price.toInt()
+        : int.tryParse(price?.toString() ?? '0') ?? 0;
     final text = priceInt.toString();
     final buf = StringBuffer();
     for (int i = 0; i < text.length; i++) {
@@ -401,7 +452,8 @@ class _ProductsManagement extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         data['name'] ?? 'N/A',
@@ -422,7 +474,10 @@ class _ProductsManagement extends StatelessWidget {
                                       ),
                                       Text(
                                         data['category'] ?? 'Chưa phân loại',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -430,12 +485,27 @@ class _ProductsManagement extends StatelessWidget {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showProductDialog(context, firestore, docId: doc.id, data: data),
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () => _showProductDialog(
+                                    context,
+                                    firestore,
+                                    docId: doc.id,
+                                    data: data,
+                                  ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteProduct(context, firestore, doc.id),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteProduct(
+                                    context,
+                                    firestore,
+                                    doc.id,
+                                  ),
                                 ),
                               ],
                             ),
@@ -450,9 +520,16 @@ class _ProductsManagement extends StatelessWidget {
     );
   }
 
-  static void _showProductDialog(BuildContext context, FirebaseFirestore firestore, {String? docId, Map<String, dynamic>? data}) {
+  static void _showProductDialog(
+    BuildContext context,
+    FirebaseFirestore firestore, {
+    String? docId,
+    Map<String, dynamic>? data,
+  }) {
     final nameCtrl = TextEditingController(text: data?['name']);
-    final priceCtrl = TextEditingController(text: data?['price']?.toString() ?? '');
+    final priceCtrl = TextEditingController(
+      text: data?['price']?.toString() ?? '',
+    );
     final categoryCtrl = TextEditingController(text: data?['category']);
     final descCtrl = TextEditingController(text: data?['moTa']);
     final imageCtrl = TextEditingController(text: data?['image']);
@@ -508,13 +585,20 @@ class _ProductsManagement extends StatelessWidget {
               if (docId == null) {
                 await firestore.collection('products').add(productData);
               } else {
-                await firestore.collection('products').doc(docId).update(productData);
+                await firestore
+                    .collection('products')
+                    .doc(docId)
+                    .update(productData);
               }
 
               if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(docId == null ? 'Đã thêm sản phẩm' : 'Đã cập nhật sản phẩm')),
+                SnackBar(
+                  content: Text(
+                    docId == null ? 'Đã thêm sản phẩm' : 'Đã cập nhật sản phẩm',
+                  ),
+                ),
               );
             },
             child: const Text('Lưu'),
@@ -524,7 +608,11 @@ class _ProductsManagement extends StatelessWidget {
     );
   }
 
-  static void _deleteProduct(BuildContext context, FirebaseFirestore firestore, String docId) {
+  static void _deleteProduct(
+    BuildContext context,
+    FirebaseFirestore firestore,
+    String docId,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -541,9 +629,9 @@ class _ProductsManagement extends StatelessWidget {
               await firestore.collection('products').doc(docId).delete();
               if (!context.mounted) return;
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xóa sản phẩm')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Đã xóa sản phẩm')));
             },
             child: const Text('Xóa'),
           ),
@@ -559,7 +647,11 @@ class _ServicesManagement extends StatelessWidget {
   const _ServicesManagement({required this.firestore});
 
   String _formatServicePrice(dynamic price) {
-    final priceInt = (price is int) ? price : (price is double) ? price.toInt() : int.tryParse(price?.toString() ?? '0') ?? 0;
+    final priceInt = (price is int)
+        ? price
+        : (price is double)
+        ? price.toInt()
+        : int.tryParse(price?.toString() ?? '0') ?? 0;
     final text = priceInt.toString();
     final buf = StringBuffer();
     for (int i = 0; i < text.length; i++) {
@@ -629,7 +721,8 @@ class _ServicesManagement extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -662,6 +755,7 @@ class _ServicesManagement extends StatelessWidget {
                                         ],
                                       ),
                                       const SizedBox(height: 4),
+<<<<<<< HEAD
                                       if (!isCombo) ...[
                                         Text(
                                           'Chó: ${_formatServicePrice(data['dogBase'])}',
@@ -681,22 +775,55 @@ class _ServicesManagement extends StatelessWidget {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
+=======
+                                      Text(
+                                        'Chó: ${_formatServicePrice(data['dogBase'])}',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Mèo: ${_formatServicePrice(data['catBase'])}',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                     ],
                                   ),
                                 ),
                                 IconButton(
+<<<<<<< HEAD
                                   icon: const Icon(Icons.edit, color: Colors.blue),
+=======
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                   onPressed: () => _showServiceDialog(
                                     context,
                                     firestore,
                                     docId: doc.id,
                                     data: data,
+<<<<<<< HEAD
                                     allServices: services,
+=======
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteService(context, firestore, doc.id),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteService(
+                                    context,
+                                    firestore,
+                                    doc.id,
+                                  ),
                                 ),
                               ],
                             ),
@@ -716,11 +843,18 @@ class _ServicesManagement extends StatelessWidget {
     FirebaseFirestore firestore, {
     String? docId,
     Map<String, dynamic>? data,
+<<<<<<< HEAD
     required List<QueryDocumentSnapshot> allServices,
+=======
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
   }) {
     final nameCtrl = TextEditingController(text: data?['name']);
-    final dogBaseCtrl = TextEditingController(text: data?['dogBase']?.toString() ?? '');
-    final catBaseCtrl = TextEditingController(text: data?['catBase']?.toString() ?? '');
+    final dogBaseCtrl = TextEditingController(
+      text: data?['dogBase']?.toString() ?? '',
+    );
+    final catBaseCtrl = TextEditingController(
+      text: data?['catBase']?.toString() ?? '',
+    );
 
     String kind = data?['kind']?.toString() ?? 'single';
     final selectedItems = <String>{
@@ -736,6 +870,7 @@ class _ServicesManagement extends StatelessWidget {
 
     showDialog(
       context: context,
+<<<<<<< HEAD
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(docId == null ? 'Thêm dịch vụ' : 'Sửa dịch vụ'),
@@ -816,6 +951,33 @@ class _ServicesManagement extends StatelessWidget {
                 ],
               ],
             ),
+=======
+      builder: (context) => AlertDialog(
+        title: Text(docId == null ? 'Thêm dịch vụ' : 'Sửa dịch vụ'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Tên dịch vụ'),
+              ),
+              TextField(
+                controller: dogBaseCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Giá cho chó (số nguyên)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: catBaseCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Giá cho mèo (số nguyên)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
           ),
           actions: [
             TextButton(
@@ -860,11 +1022,59 @@ class _ServicesManagement extends StatelessWidget {
             ),
           ],
         ),
+<<<<<<< HEAD
+=======
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final dogBase = int.tryParse(dogBaseCtrl.text) ?? 0;
+              final catBase = int.tryParse(catBaseCtrl.text) ?? 0;
+              final serviceData = {
+                'name': nameCtrl.text,
+                'kind': 'single',
+                'dogBase': dogBase,
+                'catBase': catBase,
+                'isActive': true,
+                'itemsRaw': [],
+                'itemsResolved': [],
+              };
+
+              if (docId == null) {
+                await firestore.collection('services').add(serviceData);
+              } else {
+                await firestore
+                    .collection('services')
+                    .doc(docId)
+                    .update(serviceData);
+              }
+
+              if (!context.mounted) return;
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    docId == null ? 'Đã thêm dịch vụ' : 'Đã cập nhật dịch vụ',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
       ),
     );
   }
 
-  static void _deleteService(BuildContext context, FirebaseFirestore firestore, String docId) {
+  static void _deleteService(
+    BuildContext context,
+    FirebaseFirestore firestore,
+    String docId,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -881,9 +1091,9 @@ class _ServicesManagement extends StatelessWidget {
               await firestore.collection('services').doc(docId).delete();
               if (!context.mounted) return;
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xóa dịch vụ')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Đã xóa dịch vụ')));
             },
             child: const Text('Xóa'),
           ),
@@ -901,7 +1111,14 @@ class _PurchaseHistoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
+<<<<<<< HEAD
       stream: firestore.collection('usercardhistory').snapshots(),
+=======
+      stream: firestore
+          .collection('usercardhistory')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Lỗi: ${snapshot.error}'));
@@ -933,7 +1150,8 @@ class _PurchaseHistoryView extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = purchases[index];
             final data = doc.data() as Map<String, dynamic>;
-            final items = (data['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+            final items =
+                (data['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
             final timestamp = data['timestamp'] as Timestamp?;
             final date = timestamp?.toDate();
             final userId = data['userId'] as String? ?? 'Unknown';
@@ -942,7 +1160,10 @@ class _PurchaseHistoryView extends StatelessWidget {
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: ExpansionTile(
-                leading: const Icon(Icons.shopping_bag, color: Color(0xFF1E90FF)),
+                leading: const Icon(
+                  Icons.shopping_bag,
+                  color: Color(0xFF1E90FF),
+                ),
                 title: Text('Đơn hàng #${doc.id.substring(0, 8)}'),
                 subtitle: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   future: userProfileFuture,
@@ -986,18 +1207,27 @@ class _PurchaseHistoryView extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        ...items.map((item) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text('${item['name']} x${item['quantity']}'),
+                        ...items.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item['name']} x${item['quantity']}',
                                   ),
-                                  Text(_formatPrice((item['price'] ?? 0) * (item['quantity'] ?? 1))),
-                                ],
-                              ),
-                            )),
+                                ),
+                                Text(
+                                  _formatPrice(
+                                    (item['price'] ?? 0) *
+                                        (item['quantity'] ?? 1),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1073,16 +1303,27 @@ class _CategoriesManagement extends StatelessWidget {
                               children: [
                                 CircleAvatar(
                                   radius: 30,
-                                  backgroundColor: Color(int.parse(data['color']?.toString().replaceAll('#', '0xFF') ?? '0xFF1E90FF')),
+                                  backgroundColor: Color(
+                                    int.parse(
+                                      data['color']?.toString().replaceAll(
+                                            '#',
+                                            '0xFF',
+                                          ) ??
+                                          '0xFF1E90FF',
+                                    ),
+                                  ),
                                   child: Icon(
-                                    _getIconData(data['icon']?.toString() ?? 'category'),
+                                    _getIconData(
+                                      data['icon']?.toString() ?? 'category',
+                                    ),
                                     color: Colors.white,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         data['name'] ?? 'N/A',
@@ -1096,7 +1337,10 @@ class _CategoriesManagement extends StatelessWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         data['description'] ?? '',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 13,
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -1104,12 +1348,27 @@ class _CategoriesManagement extends StatelessWidget {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showCategoryDialog(context, firestore, docId: doc.id, data: data),
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () => _showCategoryDialog(
+                                    context,
+                                    firestore,
+                                    docId: doc.id,
+                                    data: data,
+                                  ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteCategory(context, firestore, doc.id),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteCategory(
+                                    context,
+                                    firestore,
+                                    doc.id,
+                                  ),
                                 ),
                               ],
                             ),
@@ -1143,7 +1402,12 @@ class _CategoriesManagement extends StatelessWidget {
     }
   }
 
-  static void _showCategoryDialog(BuildContext context, FirebaseFirestore firestore, {String? docId, Map<String, dynamic>? data}) {
+  static void _showCategoryDialog(
+    BuildContext context,
+    FirebaseFirestore firestore, {
+    String? docId,
+    Map<String, dynamic>? data,
+  }) {
     final nameCtrl = TextEditingController(text: data?['name']);
     final descCtrl = TextEditingController(text: data?['description']);
     String selectedIcon = data?['icon']?.toString() ?? 'category';
@@ -1169,35 +1433,104 @@ class _CategoriesManagement extends StatelessWidget {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 16),
-                const Text('Chọn icon:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Chọn icon:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildIconButton('category', Icons.category, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('pets', Icons.pets, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('fastfood', Icons.fastfood, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('toys', Icons.toys, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('medical_services', Icons.medical_services, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('home', Icons.home, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
-                    _buildIconButton('shopping_bag', Icons.shopping_bag, selectedIcon, (icon) => setState(() => selectedIcon = icon)),
+                    _buildIconButton(
+                      'category',
+                      Icons.category,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'pets',
+                      Icons.pets,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'fastfood',
+                      Icons.fastfood,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'toys',
+                      Icons.toys,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'medical_services',
+                      Icons.medical_services,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'home',
+                      Icons.home,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
+                    _buildIconButton(
+                      'shopping_bag',
+                      Icons.shopping_bag,
+                      selectedIcon,
+                      (icon) => setState(() => selectedIcon = icon),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Text('Chọn màu:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Chọn màu:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildColorButton('#1E90FF', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#FF6B6B', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#4ECDC4', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#FFD93D', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#95E1D3', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#F38181', selectedColor, (color) => setState(() => selectedColor = color)),
-                    _buildColorButton('#AA96DA', selectedColor, (color) => setState(() => selectedColor = color)),
+                    _buildColorButton(
+                      '#1E90FF',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#FF6B6B',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#4ECDC4',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#FFD93D',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#95E1D3',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#F38181',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
+                    _buildColorButton(
+                      '#AA96DA',
+                      selectedColor,
+                      (color) => setState(() => selectedColor = color),
+                    ),
                   ],
                 ),
               ],
@@ -1221,13 +1554,22 @@ class _CategoriesManagement extends StatelessWidget {
                 if (docId == null) {
                   await firestore.collection('categories').add(categoryData);
                 } else {
-                  await firestore.collection('categories').doc(docId).update(categoryData);
+                  await firestore
+                      .collection('categories')
+                      .doc(docId)
+                      .update(categoryData);
                 }
 
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(docId == null ? 'Đã thêm danh mục' : 'Đã cập nhật danh mục')),
+                  SnackBar(
+                    content: Text(
+                      docId == null
+                          ? 'Đã thêm danh mục'
+                          : 'Đã cập nhật danh mục',
+                    ),
+                  ),
                 );
               },
               child: const Text('Lưu'),
@@ -1238,7 +1580,12 @@ class _CategoriesManagement extends StatelessWidget {
     );
   }
 
-  static Widget _buildIconButton(String iconName, IconData icon, String selectedIcon, Function(String) onTap) {
+  static Widget _buildIconButton(
+    String iconName,
+    IconData icon,
+    String selectedIcon,
+    Function(String) onTap,
+  ) {
     final isSelected = iconName == selectedIcon;
     return InkWell(
       onTap: () => onTap(iconName),
@@ -1261,7 +1608,11 @@ class _CategoriesManagement extends StatelessWidget {
     );
   }
 
-  static Widget _buildColorButton(String color, String selectedColor, Function(String) onTap) {
+  static Widget _buildColorButton(
+    String color,
+    String selectedColor,
+    Function(String) onTap,
+  ) {
     final isSelected = color == selectedColor;
     return InkWell(
       onTap: () => onTap(color),
@@ -1276,14 +1627,16 @@ class _CategoriesManagement extends StatelessWidget {
             width: isSelected ? 3 : 1,
           ),
         ),
-        child: isSelected
-            ? const Icon(Icons.check, color: Colors.white)
-            : null,
+        child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
       ),
     );
   }
 
-  static void _deleteCategory(BuildContext context, FirebaseFirestore firestore, String docId) {
+  static void _deleteCategory(
+    BuildContext context,
+    FirebaseFirestore firestore,
+    String docId,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1300,9 +1653,9 @@ class _CategoriesManagement extends StatelessWidget {
               await firestore.collection('categories').doc(docId).delete();
               if (!context.mounted) return;
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xóa danh mục')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Đã xóa danh mục')));
             },
             child: const Text('Xóa'),
           ),
@@ -1334,6 +1687,10 @@ class _ServiceBookingsView extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: firestore
           .collection('service_bookings')
+<<<<<<< HEAD
+=======
+          .orderBy('date', descending: true)
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1379,6 +1736,7 @@ class _ServiceBookingsView extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
+<<<<<<< HEAD
             // Normalize fields to avoid N/A display
             final dateTs = data['bookingDate'] as Timestamp? ?? data['date'] as Timestamp?;
             final dateOnly = dateTs?.toDate();
@@ -1415,12 +1773,22 @@ class _ServiceBookingsView extends StatelessWidget {
             final userProfileFuture = userId != null && userId.isNotEmpty
               ? firestore.collection('userdata').doc(userId).get()
               : null;
+=======
+            final bookingDate = (data['date'] as Timestamp?)?.toDate();
+            final serviceName = data['serviceTitle'] ?? 'N/A';
+            final userName = data['customerName'] ?? 'N/A';
+            final userEmail = data['userEmail'] ?? 'N/A';
+            final petType = data['petName'] ?? 'N/A';
+            final price = data['price'] as int? ?? 0;
+            final status = data['status'] ?? 'Chờ xác nhận';
+            final notes = data['notes'] ?? '';
+>>>>>>> b5a81ed46cc703eca08e99435ec9326131e13f5d
 
             final statusColor = status == 'Hoàn thành'
                 ? Colors.green
                 : status == 'Đã hủy'
-                    ? Colors.red
-                    : Colors.orange;
+                ? Colors.red
+                : Colors.orange;
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
@@ -1543,7 +1911,11 @@ class _ServiceBookingsView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           startAt != null
@@ -1556,7 +1928,11 @@ class _ServiceBookingsView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.attach_money, size: 16, color: Colors.blue[700]),
+                        Icon(
+                          Icons.attach_money,
+                          size: 16,
+                          color: Colors.blue[700],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           _formatPrice(price),
@@ -1589,7 +1965,10 @@ class _ServiceBookingsView extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               notes,
-                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -1609,7 +1988,9 @@ class _ServiceBookingsView extends StatelessWidget {
                                   .doc(booking.id)
                                   .update({'status': 'Hoàn thành'});
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã cập nhật trạng thái')),
+                                const SnackBar(
+                                  content: Text('Đã cập nhật trạng thái'),
+                                ),
                               );
                             },
                           ),
