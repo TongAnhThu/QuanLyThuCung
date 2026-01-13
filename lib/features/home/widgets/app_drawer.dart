@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/user_my_bookings_page.dart'; // hoặc page route của cậu
+import '../about_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -134,9 +135,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('About us'),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Pet Shop - about us')),
-              );
+              Navigator.pushNamed(context, AboutPage.routeName);
             },
           ),
           const Divider(height: 1),

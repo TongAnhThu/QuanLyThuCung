@@ -97,18 +97,6 @@ class AuthService {
     }
   }
 
-  // Đăng nhập ẩn danh
-  Future<UserCredential?> signInAnonymously() async {
-    try {
-      final credential = await _auth.signInAnonymously();
-      return credential;
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
-    } catch (e) {
-      throw 'Lỗi đăng nhập ẩn danh: $e';
-    }
-  }
-
   // Xử lý lỗi Firebase Auth
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {

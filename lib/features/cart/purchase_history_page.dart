@@ -63,11 +63,20 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final purchase = history[index];
-              final items = (purchase['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-              final totalAmount = purchase['totalAmount'] as int? ?? 0;
-              final paymentMethod = purchase['paymentMethod'] as String? ?? '';
+              final itemsRaw = (purchase['items'] as List?) ?? const [];
+              // Defensive parsing to avoid type issues from legacy data
+              final items = itemsRaw.map((item) {
+                final map = item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{};
+                final name = map['name']?.toString() ?? 'Sản phẩm';
+                final qty = (map['quantity'] as num?)?.toInt() ?? 0;
+                final price = (map['price'] as num?)?.toInt() ?? 0;
+                return {'name': name, 'quantity': qty, 'price': price};
+              }).toList();
+
+              final totalAmount = (purchase['totalAmount'] as num?)?.toInt() ?? 0;
+              final paymentMethod = purchase['paymentMethod']?.toString() ?? '';
               final timestamp = purchase['timestamp'] as Timestamp?;
-              final purchaseId = purchase['id'] as String;
+              final purchaseId = purchase['id']?.toString() ?? 'N/A';
               final dateTime = timestamp?.toDate();
 
               return Container(
@@ -90,7 +99,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Đơn hàng #${purchaseId.substring(purchaseId.length > 6 ? purchaseId.length - 6 : 0)}',
+                          'Đơn hàng #${purchaseId.length > 6 ? purchaseId.substring(purchaseId.length - 6) : purchaseId}',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -193,56 +202,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Xóa đơn hàng?'),
-                                content: const Text('Bạn có chắc muốn xóa đơn hàng này khỏi lịch sử?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Hủy'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      Navigator.pop(context);
-                                      try {
-                                        await _historyService.removePurchase(purchaseId);
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Đã xóa đơn hàng'),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Lỗi: ${e.toString()}'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: const Text('Xóa'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
-                          ),
-                          child: const Text('Xóa khỏi lịch sử'),
-                        ),
-                      ),
+                      // Nút xóa lịch sử đã bị bỏ để tránh người dùng tự xóa đơn
                     ],
                   ),
                 );

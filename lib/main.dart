@@ -13,6 +13,7 @@ import 'features/auth/login/forgot_page.dart';
 import 'features/auth/login/first_time_setup_page.dart';
 
 import 'features/home/widgets/home_page.dart';
+import 'features/home/about_page.dart';
 
 import 'features/pets/pet_detail_page.dart';
 import 'features/cart/cart_page.dart';
@@ -109,6 +110,7 @@ class MyApp extends StatelessWidget {
         ForgotPage.routeName: (_) => const ForgotPage(),
         FirstTimeSetupPage.routeName: (_) => const FirstTimeSetupPage(),
         HomePage.routeName: (_) => const HomePage(),
+        AboutPage.routeName: (_) => const AboutPage(),
         CartPage.routeName: (_) => const CartPage(),
         CheckoutPage.routeName: (_) => const CheckoutPage(),
         PurchaseHistoryPage.routeName: (_) => const PurchaseHistoryPage(),

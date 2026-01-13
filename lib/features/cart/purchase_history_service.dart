@@ -35,14 +35,24 @@ class PurchaseHistoryService {
     return _firestore
         .collection('usercardhistory')
         .where('userId', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
+      final list = snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
         return data;
       }).toList();
+
+      list.sort((a, b) {
+        final ta = (a['timestamp'] as Timestamp?);
+        final tb = (b['timestamp'] as Timestamp?);
+        if (ta == null && tb == null) return 0;
+        if (ta == null) return 1;
+        if (tb == null) return -1;
+        return tb.compareTo(ta); // newest first
+      });
+
+      return list;
     });
   }
 

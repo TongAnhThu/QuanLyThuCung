@@ -197,25 +197,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 44,
-                        child: OutlinedButton.icon(
-                          onPressed: _isLoading
-                              ? null
-                              : () => _handleAnonymousSignIn(),
-                          icon: const Icon(Icons.person_outline),
-                          label: const Text('Tiếp tục ẩn danh'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white54),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -336,46 +317,6 @@ class _LoginPageState extends State<LoginPage> {
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleAnonymousSignIn() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final credential = await _authService.signInAnonymously();
-
-      if (credential == null || credential.user == null || !mounted) return;
-
-      // Tạo profile mới cho anonymous user
-      await _userService.createUserProfile(
-        uid: credential.user!.uid,
-        email: credential.user!.email ?? 'anonymous@example.com',
-        displayName: 'Anonymous User',
-      );
-
-      if (!mounted) return;
-
-      // Đưa sang trang setup để hoàn tất thông tin
-      Navigator.pushReplacementNamed(
-        context,
-        FirstTimeSetupPage.routeName,
-        arguments: {
-          'uid': credential.user!.uid,
-          'displayName': 'Anonymous User',
-          'email': credential.user!.email ?? '',
-        },
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 }
